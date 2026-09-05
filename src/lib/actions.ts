@@ -68,7 +68,7 @@ export type ActionDef = {
   key: string;
   label: string;
   description?: string;
-  method: "POST" | "PATCH" | "DELETE";
+  method: "POST" | "PATCH" | "PUT" | "DELETE";
   /** `collection` = toolbar button, `row` = per-record button. */
   scope: "collection" | "row";
   /** `{id}` is replaced with the row value at `idKey`. */
@@ -284,7 +284,20 @@ export const ACTIONS: Record<string, ActionDef[]> = {
       ],
       roles: ["CLIENT_ADMIN"],
     },
+    {
+      key: "client-regenerate-key",
+      label: "Regenerate API key",
+      description:
+        "POST /api/v1/clients/{id}/regenerate-api-key — CLIENT_ADMIN only. The previous key stops working immediately and the new key is shown once.",
+      method: "POST",
+      scope: "row",
+      path: "/api/v1/clients/{id}/regenerate-api-key",
+      idKey: "id",
+      danger: true,
+      roles: ["CLIENT_ADMIN"],
+    },
   ],
+
 
 
   games: [
