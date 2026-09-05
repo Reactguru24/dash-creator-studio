@@ -267,7 +267,15 @@ export function DataTable({
                   ) : null}
                   <td className="px-2 text-muted-foreground">
                     {!clientAdmin ? (
-                      <ChevronRight className="size-4" strokeWidth={1.75} />
+                      <button
+                        type="button"
+                        aria-label="Open record detail"
+                        title="Open record detail"
+                        onClick={() => setSelected(row)}
+                        className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
+                      >
+                        <ChevronRight className="size-4" strokeWidth={1.75} />
+                      </button>
                     ) : null}
                   </td>
                 </tr>
