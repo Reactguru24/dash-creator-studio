@@ -38,8 +38,8 @@ export function FilterBar({
   const orderedFilters = [...filters].sort((a, b) => {
     if (a.type === "operator" && b.type !== "operator") return -1;
     if (a.type !== "operator" && b.type === "operator") return 1;
-    if (a.type === "game" && b.type !== "game" && a.type !== "operator") return -1;
-    if (b.type === "game" && a.type !== "game" && b.type !== "operator") return 1;
+    if (a.type === "game" && b.type !== "game") return -1;
+    if (b.type === "game" && a.type !== "game") return 1;
     return 0;
   });
 
