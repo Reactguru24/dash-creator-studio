@@ -108,6 +108,9 @@ export function ReferenceSelect({
   disabled,
   groupBy,
   extraGroup,
+  multiple,
+  values,
+  onChangeMulti,
 }: {
   kind: Kind;
   id?: string;
@@ -120,7 +123,12 @@ export function ReferenceSelect({
   groupBy?: string;
   /** Extra, non-API options rendered as their own group at the top of the list. */
   extraGroup?: { label: string; options: Option[] };
+  /** Render checkboxes so several records can be picked at once. */
+  multiple?: boolean;
+  values?: string[];
+  onChangeMulti?: (value: string[]) => void;
 }) {
+
   const [open, setOpen] = useState(false);
   // Cache-first: `useReferenceOptions` only calls the API when the list isn't
   // already cached, so requesting it on mount costs nothing on later pages.
