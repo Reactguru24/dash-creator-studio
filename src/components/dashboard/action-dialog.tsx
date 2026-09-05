@@ -811,14 +811,22 @@ export function ActionDialog({
     },
     onSuccess: (data) => {
       mutation.reset();
-      setResult(null);
       setSubmitAttempted(false);
       const dict = data && typeof data === "object" && !Array.isArray(data) ? (data as Dict) : null;
       const description =
         (typeof dict?.status_description === "string" && dict.status_description) ||
         (typeof dict?.message === "string" && dict.message) ||
         undefined;
+      // Surface the whole API response (including per-game failures) in the dialog.
+      setResult(data ?? null);
+      const nested = dict?.data as { failed?: { game_id: string; message: string }[] } | undefined;
+      const failed = Array.isArray(nested?.failed) ? nested!.failed! : [];
+      setFailures(failed);
       toast.success(description ?? `${action.label} succeeded`);
+      for (const message of Array.from(new Set(failed.map((item) => item.message)))) {
+        toast.error(message);
+      }
+
       // Keep reference dropdowns (operators, partners, roles…) in sync after
       // create/update/delete so newly added records show up immediately.
       const refresh = useReferenceStore.getState().refresh;
