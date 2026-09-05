@@ -20,10 +20,13 @@ export type ActionFieldType =
   | "operator"
   | "operators-multi"
   | "game"
+  | "games-multi"
   | "permission"
   | "permissions-multi"
   | "role"
   | "partner"
+  | "partners-multi"
+
   | "currency"
   | "currency-multi"
   | "money"
