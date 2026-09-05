@@ -1,7 +1,19 @@
 import { useEffect } from "react";
-import { DateField } from "@/components/ui/date-field";
+import { CalendarDays } from "lucide-react";
+import { DateRangeField } from "@/components/ui/date-range-field";
 import { ReferenceSelect } from "@/components/dashboard/reference-select";
-import { parseOperatorId, useDashboardStore } from "@/lib/stores/dashboard-store";
+import { SelectMenu } from "@/components/dashboard/select-menu";
+import { todayISO } from "@/lib/format";
+import {
+  defaultDateFrom,
+  defaultDateTo,
+  monthRange,
+  parseOperatorId,
+  useDashboardStore,
+} from "@/lib/stores/dashboard-store";
+
+/** Current month plus the previous 11, for the month picker. */
+const MONTH_OPTIONS = Array.from({ length: 12 }, (_, index) => monthRange(index));
 import { useAuth, useClientScope } from "@/lib/use-auth";
 import type { StatsFilters } from "@/lib/stats";
 
