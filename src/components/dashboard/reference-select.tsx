@@ -380,22 +380,7 @@ export function ReferenceSelect({
                   <div key={group.label} className="space-y-1 py-1">
                     <div className="px-3 text-xs uppercase tracking-[0.12em] text-muted-foreground">{group.label}</div>
                     <div className="space-y-1">
-                      {group.options.map((option) => (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => {
-                            onChange(option.value);
-                            setOpen(false);
-                          }}
-                          className={cn(
-                            "flex w-full items-center rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-accent/50",
-                            value === option.value && "bg-primary/10",
-                          )}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
+                      {group.options.map((option) => renderOption(option))}
                     </div>
                   </div>
                 ))
@@ -403,22 +388,8 @@ export function ReferenceSelect({
             ) : options.length === 0 ? (
               <p className="px-3 py-2 text-sm text-muted-foreground">{emptyMessage}</p>
             ) : (
-              options.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => {
-                    onChange(option.value);
-                    setOpen(false);
-                  }}
-                  className={cn(
-                    "flex w-full items-center rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-accent/50",
-                    value === option.value && "bg-primary/10",
-                  )}
-                >
-                  {option.label}
-                </button>
-              ))
+              options.map((option) => renderOption(option))
+
             )}
           </div>
         </div>
