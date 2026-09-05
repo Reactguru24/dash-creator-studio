@@ -366,22 +366,8 @@ export function ReferenceSelect({
                 <div className="px-3 text-xs uppercase tracking-[0.12em] text-muted-foreground">
                   {extra.label}
                 </div>
-                {extra.options.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => {
-                      onChange(option.value);
-                      setOpen(false);
-                    }}
-                    className={cn(
-                      "flex w-full items-center rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-accent/50",
-                      value === option.value && "bg-primary/10",
-                    )}
-                  >
-                    {option.label}
-                  </button>
-                ))}
+                {extra.options.map((option) => renderOption(option))}
+
               </div>
             ) : null}
             {query.loading ? (
