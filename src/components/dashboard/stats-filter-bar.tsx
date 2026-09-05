@@ -53,36 +53,87 @@ export function StatsFilterBar({
   hideOperator: boolean;
   showGame?: boolean;
 }) {
-  const { dateFrom, dateTo, operatorId, gameId, setDateFrom, setDateTo, setOperatorId, setGameId } =
+  const { dateFrom, dateTo, operatorId, gameId, setRange, setOperatorId, setGameId } =
     useDashboardStore();
 
   return (
-    <div className="panel mb-5 grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-4">
-      <label className="flex flex-col gap-1.5">
-        <span className="label-eyebrow">Date from</span>
-        <DateField value={dateFrom} onChange={setDateFrom} />
-      </label>
-      <label className="flex flex-col gap-1.5">
-        <span className="label-eyebrow">Date to</span>
-        <DateField value={dateTo} onChange={setDateTo} />
-      </label>
-      {hideOperator ? null : (
-        <label className="flex min-w-0 flex-col gap-1.5">
-          <span className="label-eyebrow">Operator</span>
-          <ReferenceSelect kind="operator" value={operatorId} onChange={setOperatorId} />
-        </label>
-      )}
-      {showGame ? (
-        <label className="flex min-w-0 flex-col gap-1.5">
-          <span className="label-eyebrow">Game</span>
-          <ReferenceSelect
-            kind="game"
-            value={gameId}
-            operatorId={operatorId}
-            onChange={setGameId}
+    <div className="panel mb-5 space-y-4 p-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <label className="flex flex-col gap-1.5 sm:col-span-2">
+          <span className="label-eyebrow">Date range *</span>
+          <DateRangeField
+            from={dateFrom}
+            to={dateTo}
+            onChange={(from, to) => setRange(from || todayISO(), to || from || todayISO())}
           />
         </label>
-      ) : null}
+        {hideOperator ? null : (
+          <label className="flex min-w-0 flex-col gap-1.5">
+            <span className="label-eyebrow">Operator</span>
+            <ReferenceSelect kind="operator" value={operatorId} onChange={setOperatorId} />
+          </label>
+        )}
+        {showGame ? (
+          <label className="flex min-w-0 flex-col gap-1.5">
+            <span className="label-eyebrow">Game</span>
+            <ReferenceSelect
+              kind="game"
+              value={gameId}
+              operatorId={operatorId}
+              onChange={setGameId}
+            />
+          </label>
+        ) : null}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-1.5">
+        <SelectMenu
+          aria-label="Month"
+          className="w-48"
+          icon={<CalendarDays className="size-3.5 shrink-0 text-muted-foreground" strokeWidth={1.75} />}
+          placeholder="Custom range"
+          value={MONTH_OPTIONS.find((m) => m.from === dateFrom && m.to === dateTo)?.key ?? ""}
+          options={MONTH_OPTIONS.map((month) => ({ value: month.key, label: month.label }))}
+          onChange={(value) => {
+            const picked = MONTH_OPTIONS.find((m) => m.key === value);
+            if (picked) setRange(picked.from, picked.to);
+          }}
+        />
+        {[
+          { label: "Today", from: todayISO(), to: todayISO() },
+          { label: "Yesterday", from: todayISO(-1), to: todayISO(-1) },
+          { label: "7d", from: todayISO(-6), to: todayISO() },
+          { label: "30d", from: todayISO(-29), to: todayISO() },
+          { label: "90d", from: todayISO(-89), to: todayISO() },
+        ].map((preset) => {
+          const active = dateFrom === preset.from && dateTo === preset.to;
+          return (
+            <button
+              key={preset.label}
+              type="button"
+              onClick={() => setRange(preset.from, preset.to)}
+              className={`h-9 rounded-md border px-3 text-xs transition-colors ${
+                active
+                  ? "border-primary/60 bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {preset.label}
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          onClick={() => {
+            setRange(defaultDateFrom(), defaultDateTo());
+            setOperatorId("");
+            setGameId("");
+          }}
+          className="ml-auto h-9 rounded-md border border-border px-3 text-xs text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Reset filters
+        </button>
+      </div>
     </div>
   );
 }
