@@ -10,33 +10,427 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccessRouteImport } from './routes/access'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as AuditLogsRouteImport } from './routes/audit-logs'
+import { Route as BetAttemptsRouteImport } from './routes/bet-attempts'
+import { Route as BetsRouteImport } from './routes/bets'
+import { Route as ClientRegenerateKeyRouteImport } from './routes/client-regenerate-key'
+import { Route as ClientsRouteImport } from './routes/clients'
+import { Route as ExchangeRatesRouteImport } from './routes/exchange-rates'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as FreebetsRouteImport } from './routes/freebets'
+import { Route as GamesRouteImport } from './routes/games'
+import { Route as GamesCatalogRouteImport } from './routes/games-catalog'
+import { Route as IntegrationTestsRouteImport } from './routes/integration-tests'
+import { Route as InvoicesRouteImport } from './routes/invoices'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as OperationalRouteImport } from './routes/operational'
+import { Route as OperatorGamesRouteImport } from './routes/operator-games'
+import { Route as PartnersRouteImport } from './routes/partners'
+import { Route as PlatformHealthRouteImport } from './routes/platform-health'
+import { Route as PlayerBehaviorRouteImport } from './routes/player-behavior'
+import { Route as PlayersRouteImport } from './routes/players'
+import { Route as PromotionsRouteImport } from './routes/promotions'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as RiskRouteImport } from './routes/risk'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as TransactionsRouteImport } from './routes/transactions'
+import { Route as UsersRouteImport } from './routes/users'
+import { Route as VerifyRouteImport } from './routes/verify.'
+import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccessRoute = AccessRouteImport.update({
+  id: '/access',
+  path: '/access',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuditLogsRoute = AuditLogsRouteImport.update({
+  id: '/audit-logs',
+  path: '/audit-logs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BetAttemptsRoute = BetAttemptsRouteImport.update({
+  id: '/bet-attempts',
+  path: '/bet-attempts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BetsRoute = BetsRouteImport.update({
+  id: '/bets',
+  path: '/bets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientRegenerateKeyRoute = ClientRegenerateKeyRouteImport.update({
+  id: '/client-regenerate-key',
+  path: '/client-regenerate-key',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientsRoute = ClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExchangeRatesRoute = ExchangeRatesRouteImport.update({
+  id: '/exchange-rates',
+  path: '/exchange-rates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FreebetsRoute = FreebetsRouteImport.update({
+  id: '/freebets',
+  path: '/freebets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GamesRoute = GamesRouteImport.update({
+  id: '/games',
+  path: '/games',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GamesCatalogRoute = GamesCatalogRouteImport.update({
+  id: '/games-catalog',
+  path: '/games-catalog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IntegrationTestsRoute = IntegrationTestsRouteImport.update({
+  id: '/integration-tests',
+  path: '/integration-tests',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InvoicesRoute = InvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperationalRoute = OperationalRouteImport.update({
+  id: '/operational',
+  path: '/operational',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperatorGamesRoute = OperatorGamesRouteImport.update({
+  id: '/operator-games',
+  path: '/operator-games',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnersRoute = PartnersRouteImport.update({
+  id: '/partners',
+  path: '/partners',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlatformHealthRoute = PlatformHealthRouteImport.update({
+  id: '/platform-health',
+  path: '/platform-health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlayerBehaviorRoute = PlayerBehaviorRouteImport.update({
+  id: '/player-behavior',
+  path: '/player-behavior',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlayersRoute = PlayersRouteImport.update({
+  id: '/players',
+  path: '/players',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PromotionsRoute = PromotionsRouteImport.update({
+  id: '/promotions',
+  path: '/promotions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RiskRoute = RiskRouteImport.update({
+  id: '/risk',
+  path: '/risk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TransactionsRoute = TransactionsRouteImport.update({
+  id: '/transactions',
+  path: '/transactions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyRoute = VerifyRouteImport.update({
+  id: '/verify/',
+  path: '/verify/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyTokenRoute = VerifyTokenRouteImport.update({
+  id: '/verify/$token',
+  path: '/verify/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/access': typeof AccessRoute
+  '/analytics': typeof AnalyticsRoute
+  '/audit-logs': typeof AuditLogsRoute
+  '/bet-attempts': typeof BetAttemptsRoute
+  '/bets': typeof BetsRoute
+  '/client-regenerate-key': typeof ClientRegenerateKeyRoute
+  '/clients': typeof ClientsRoute
+  '/exchange-rates': typeof ExchangeRatesRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/freebets': typeof FreebetsRoute
+  '/games': typeof GamesRoute
+  '/games-catalog': typeof GamesCatalogRoute
+  '/integration-tests': typeof IntegrationTestsRoute
+  '/invoices': typeof InvoicesRoute
+  '/login': typeof LoginRoute
+  '/operational': typeof OperationalRoute
+  '/operator-games': typeof OperatorGamesRoute
+  '/partners': typeof PartnersRoute
+  '/platform-health': typeof PlatformHealthRoute
+  '/player-behavior': typeof PlayerBehaviorRoute
+  '/players': typeof PlayersRoute
+  '/promotions': typeof PromotionsRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/risk': typeof RiskRoute
+  '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/transactions': typeof TransactionsRoute
+  '/users': typeof UsersRoute
+  '/verify/': typeof VerifyRoute
+  '/verify/$token': typeof VerifyTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/access': typeof AccessRoute
+  '/analytics': typeof AnalyticsRoute
+  '/audit-logs': typeof AuditLogsRoute
+  '/bet-attempts': typeof BetAttemptsRoute
+  '/bets': typeof BetsRoute
+  '/client-regenerate-key': typeof ClientRegenerateKeyRoute
+  '/clients': typeof ClientsRoute
+  '/exchange-rates': typeof ExchangeRatesRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/freebets': typeof FreebetsRoute
+  '/games': typeof GamesRoute
+  '/games-catalog': typeof GamesCatalogRoute
+  '/integration-tests': typeof IntegrationTestsRoute
+  '/invoices': typeof InvoicesRoute
+  '/login': typeof LoginRoute
+  '/operational': typeof OperationalRoute
+  '/operator-games': typeof OperatorGamesRoute
+  '/partners': typeof PartnersRoute
+  '/platform-health': typeof PlatformHealthRoute
+  '/player-behavior': typeof PlayerBehaviorRoute
+  '/players': typeof PlayersRoute
+  '/promotions': typeof PromotionsRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/risk': typeof RiskRoute
+  '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/transactions': typeof TransactionsRoute
+  '/users': typeof UsersRoute
+  '/verify': typeof VerifyRoute
+  '/verify/$token': typeof VerifyTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/access': typeof AccessRoute
+  '/analytics': typeof AnalyticsRoute
+  '/audit-logs': typeof AuditLogsRoute
+  '/bet-attempts': typeof BetAttemptsRoute
+  '/bets': typeof BetsRoute
+  '/client-regenerate-key': typeof ClientRegenerateKeyRoute
+  '/clients': typeof ClientsRoute
+  '/exchange-rates': typeof ExchangeRatesRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/freebets': typeof FreebetsRoute
+  '/games': typeof GamesRoute
+  '/games-catalog': typeof GamesCatalogRoute
+  '/integration-tests': typeof IntegrationTestsRoute
+  '/invoices': typeof InvoicesRoute
+  '/login': typeof LoginRoute
+  '/operational': typeof OperationalRoute
+  '/operator-games': typeof OperatorGamesRoute
+  '/partners': typeof PartnersRoute
+  '/platform-health': typeof PlatformHealthRoute
+  '/player-behavior': typeof PlayerBehaviorRoute
+  '/players': typeof PlayersRoute
+  '/promotions': typeof PromotionsRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/risk': typeof RiskRoute
+  '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/transactions': typeof TransactionsRoute
+  '/users': typeof UsersRoute
+  '/verify/': typeof VerifyRoute
+  '/verify/$token': typeof VerifyTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/access'
+    | '/analytics'
+    | '/audit-logs'
+    | '/bet-attempts'
+    | '/bets'
+    | '/client-regenerate-key'
+    | '/clients'
+    | '/exchange-rates'
+    | '/forgot-password'
+    | '/freebets'
+    | '/games'
+    | '/games-catalog'
+    | '/integration-tests'
+    | '/invoices'
+    | '/login'
+    | '/operational'
+    | '/operator-games'
+    | '/partners'
+    | '/platform-health'
+    | '/player-behavior'
+    | '/players'
+    | '/promotions'
+    | '/reset-password'
+    | '/risk'
+    | '/settings'
+    | '/sitemap.xml'
+    | '/transactions'
+    | '/users'
+    | '/verify/'
+    | '/verify/$token'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/access'
+    | '/analytics'
+    | '/audit-logs'
+    | '/bet-attempts'
+    | '/bets'
+    | '/client-regenerate-key'
+    | '/clients'
+    | '/exchange-rates'
+    | '/forgot-password'
+    | '/freebets'
+    | '/games'
+    | '/games-catalog'
+    | '/integration-tests'
+    | '/invoices'
+    | '/login'
+    | '/operational'
+    | '/operator-games'
+    | '/partners'
+    | '/platform-health'
+    | '/player-behavior'
+    | '/players'
+    | '/promotions'
+    | '/reset-password'
+    | '/risk'
+    | '/settings'
+    | '/sitemap.xml'
+    | '/transactions'
+    | '/users'
+    | '/verify'
+    | '/verify/$token'
+  id:
+    | '__root__'
+    | '/'
+    | '/access'
+    | '/analytics'
+    | '/audit-logs'
+    | '/bet-attempts'
+    | '/bets'
+    | '/client-regenerate-key'
+    | '/clients'
+    | '/exchange-rates'
+    | '/forgot-password'
+    | '/freebets'
+    | '/games'
+    | '/games-catalog'
+    | '/integration-tests'
+    | '/invoices'
+    | '/login'
+    | '/operational'
+    | '/operator-games'
+    | '/partners'
+    | '/platform-health'
+    | '/player-behavior'
+    | '/players'
+    | '/promotions'
+    | '/reset-password'
+    | '/risk'
+    | '/settings'
+    | '/sitemap.xml'
+    | '/transactions'
+    | '/users'
+    | '/verify/'
+    | '/verify/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccessRoute: typeof AccessRoute
+  AnalyticsRoute: typeof AnalyticsRoute
+  AuditLogsRoute: typeof AuditLogsRoute
+  BetAttemptsRoute: typeof BetAttemptsRoute
+  BetsRoute: typeof BetsRoute
+  ClientRegenerateKeyRoute: typeof ClientRegenerateKeyRoute
+  ClientsRoute: typeof ClientsRoute
+  ExchangeRatesRoute: typeof ExchangeRatesRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  FreebetsRoute: typeof FreebetsRoute
+  GamesRoute: typeof GamesRoute
+  GamesCatalogRoute: typeof GamesCatalogRoute
+  IntegrationTestsRoute: typeof IntegrationTestsRoute
+  InvoicesRoute: typeof InvoicesRoute
+  LoginRoute: typeof LoginRoute
+  OperationalRoute: typeof OperationalRoute
+  OperatorGamesRoute: typeof OperatorGamesRoute
+  PartnersRoute: typeof PartnersRoute
+  PlatformHealthRoute: typeof PlatformHealthRoute
+  PlayerBehaviorRoute: typeof PlayerBehaviorRoute
+  PlayersRoute: typeof PlayersRoute
+  PromotionsRoute: typeof PromotionsRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  RiskRoute: typeof RiskRoute
+  SettingsRoute: typeof SettingsRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TransactionsRoute: typeof TransactionsRoute
+  UsersRoute: typeof UsersRoute
+  VerifyRoute: typeof VerifyRoute
+  VerifyTokenRoute: typeof VerifyTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +442,251 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/access': {
+      id: '/access'
+      path: '/access'
+      fullPath: '/access'
+      preLoaderRoute: typeof AccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/audit-logs': {
+      id: '/audit-logs'
+      path: '/audit-logs'
+      fullPath: '/audit-logs'
+      preLoaderRoute: typeof AuditLogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bet-attempts': {
+      id: '/bet-attempts'
+      path: '/bet-attempts'
+      fullPath: '/bet-attempts'
+      preLoaderRoute: typeof BetAttemptsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bets': {
+      id: '/bets'
+      path: '/bets'
+      fullPath: '/bets'
+      preLoaderRoute: typeof BetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/client-regenerate-key': {
+      id: '/client-regenerate-key'
+      path: '/client-regenerate-key'
+      fullPath: '/client-regenerate-key'
+      preLoaderRoute: typeof ClientRegenerateKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clients': {
+      id: '/clients'
+      path: '/clients'
+      fullPath: '/clients'
+      preLoaderRoute: typeof ClientsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/exchange-rates': {
+      id: '/exchange-rates'
+      path: '/exchange-rates'
+      fullPath: '/exchange-rates'
+      preLoaderRoute: typeof ExchangeRatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/freebets': {
+      id: '/freebets'
+      path: '/freebets'
+      fullPath: '/freebets'
+      preLoaderRoute: typeof FreebetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games': {
+      id: '/games'
+      path: '/games'
+      fullPath: '/games'
+      preLoaderRoute: typeof GamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games-catalog': {
+      id: '/games-catalog'
+      path: '/games-catalog'
+      fullPath: '/games-catalog'
+      preLoaderRoute: typeof GamesCatalogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/integration-tests': {
+      id: '/integration-tests'
+      path: '/integration-tests'
+      fullPath: '/integration-tests'
+      preLoaderRoute: typeof IntegrationTestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invoices': {
+      id: '/invoices'
+      path: '/invoices'
+      fullPath: '/invoices'
+      preLoaderRoute: typeof InvoicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operational': {
+      id: '/operational'
+      path: '/operational'
+      fullPath: '/operational'
+      preLoaderRoute: typeof OperationalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operator-games': {
+      id: '/operator-games'
+      path: '/operator-games'
+      fullPath: '/operator-games'
+      preLoaderRoute: typeof OperatorGamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partners': {
+      id: '/partners'
+      path: '/partners'
+      fullPath: '/partners'
+      preLoaderRoute: typeof PartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/platform-health': {
+      id: '/platform-health'
+      path: '/platform-health'
+      fullPath: '/platform-health'
+      preLoaderRoute: typeof PlatformHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/player-behavior': {
+      id: '/player-behavior'
+      path: '/player-behavior'
+      fullPath: '/player-behavior'
+      preLoaderRoute: typeof PlayerBehaviorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/players': {
+      id: '/players'
+      path: '/players'
+      fullPath: '/players'
+      preLoaderRoute: typeof PlayersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/promotions': {
+      id: '/promotions'
+      path: '/promotions'
+      fullPath: '/promotions'
+      preLoaderRoute: typeof PromotionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/risk': {
+      id: '/risk'
+      path: '/risk'
+      fullPath: '/risk'
+      preLoaderRoute: typeof RiskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/transactions': {
+      id: '/transactions'
+      path: '/transactions'
+      fullPath: '/transactions'
+      preLoaderRoute: typeof TransactionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify/': {
+      id: '/verify/'
+      path: '/verify'
+      fullPath: '/verify/'
+      preLoaderRoute: typeof VerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify/$token': {
+      id: '/verify/$token'
+      path: '/verify/$token'
+      fullPath: '/verify/$token'
+      preLoaderRoute: typeof VerifyTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccessRoute: AccessRoute,
+  AnalyticsRoute: AnalyticsRoute,
+  AuditLogsRoute: AuditLogsRoute,
+  BetAttemptsRoute: BetAttemptsRoute,
+  BetsRoute: BetsRoute,
+  ClientRegenerateKeyRoute: ClientRegenerateKeyRoute,
+  ClientsRoute: ClientsRoute,
+  ExchangeRatesRoute: ExchangeRatesRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  FreebetsRoute: FreebetsRoute,
+  GamesRoute: GamesRoute,
+  GamesCatalogRoute: GamesCatalogRoute,
+  IntegrationTestsRoute: IntegrationTestsRoute,
+  InvoicesRoute: InvoicesRoute,
+  LoginRoute: LoginRoute,
+  OperationalRoute: OperationalRoute,
+  OperatorGamesRoute: OperatorGamesRoute,
+  PartnersRoute: PartnersRoute,
+  PlatformHealthRoute: PlatformHealthRoute,
+  PlayerBehaviorRoute: PlayerBehaviorRoute,
+  PlayersRoute: PlayersRoute,
+  PromotionsRoute: PromotionsRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  RiskRoute: RiskRoute,
+  SettingsRoute: SettingsRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TransactionsRoute: TransactionsRoute,
+  UsersRoute: UsersRoute,
+  VerifyRoute: VerifyRoute,
+  VerifyTokenRoute: VerifyTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,0 +1,24 @@
+:root {
+  /* Primary teal used by the EV logo */
+  --primary: #0f6b6b;
+  --primary-foreground: #ffffff;
+
+  /* Accent lime from logo */
+  --accent: #bfe24b;
+  --accent-foreground: #083015;
+
+  --sidebar-primary: #0f6b6b;
+  --sidebar-primary-foreground: #ffffff;
+
+  --chart-1: #0f6b6b;
+}
+
+.dark {
+  --primary: #20a6a6;
+  --primary-foreground: #072727;
+  --accent: #d6f06a;
+  --accent-foreground: #07250f;
+  --sidebar-primary: #20a6a6;
+  --sidebar-primary-foreground: #072727;
+  --chart-1: #20a6a6;
+}
