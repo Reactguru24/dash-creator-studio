@@ -77,10 +77,16 @@ function initialState(action: ActionDef, row?: Dict): Record<string, FormValue> 
       state[field.name] = false;
       continue;
     }
-    if (field.type === "permissions-multi" || field.type === "operators-multi") {
+    if (
+      field.type === "permissions-multi" ||
+      field.type === "operators-multi" ||
+      field.type === "partners-multi" ||
+      field.type === "games-multi"
+    ) {
       state[field.name] = [];
       continue;
     }
+
     const prefilled = action.prefill?.includes(field.name)
       ? prefillValue(field.name, row)
       : undefined;
@@ -98,10 +104,15 @@ function initialState(action: ActionDef, row?: Dict): Record<string, FormValue> 
 
 function coerce(field: ActionField, value: FormValue, operatorCurrencies: string[] = []): unknown {
   if (field.type === "boolean") return Boolean(value);
+  if (field.type === "partners-multi" || field.type === "games-multi") {
+    // Handled by the bulk assignment loop, never sent as a body field.
+    return undefined;
+  }
   if (field.type === "permissions-multi" || field.type === "operators-multi") {
     if (!Array.isArray(value) || value.length === 0) return undefined;
     return value.map((v) => Number(v));
   }
+
   if (value === null || value === "") return undefined;
   if (field.type === "number") return Number.parseInt(String(value), 10);
   if (field.type === "decimal") return Number(value);
@@ -355,7 +366,9 @@ export function ActionDialog({
 
   const selectedGame = useMemo(() => {
     const source = detail ?? row;
-    const id = String(values.game_id ?? source?.game_id ?? "");
+    const raw = values.game_id;
+    const first = Array.isArray(raw) ? raw[0] : raw;
+    const id = String(first ?? source?.game_id ?? "");
     const fromApi =
       typeof source?.master_game_name === "string" && source.master_game_name
         ? source.master_game_name
@@ -374,12 +387,15 @@ export function ActionDialog({
   const jackpot = isOperatorGameAction && isJackpotGame(selectedGame);
   const denomination = isOperatorGameAction && isDenominationGame(selectedGame);
 
-  // Partner group and individual game are mutually exclusive.
-  const partnerGroupId =
-    action.key === "operator-game-create" ? String(values.partner_id ?? "") : "";
-  const individualGameId =
-    action.key === "operator-game-create" ? String(values.game_id ?? "") : "";
-  const bulkPartnerId = partnerGroupId && !individualGameId ? partnerGroupId : null;
+  // Add-modal multi-selection: any number of partner groups and/or games.
+  const isOperatorGameCreate = action.key === "operator-game-create";
+  const asList = (value: FormValue): string[] =>
+    Array.isArray(value) ? value.filter(Boolean).map(String) : value ? [String(value)] : [];
+  const selectedPartnerIds = isOperatorGameCreate ? asList(values.partner_id ?? null) : [];
+  const selectedGameIds = isOperatorGameCreate ? asList(values.game_id ?? null) : [];
+  const individualGameId = selectedGameIds[0] ?? "";
+  const bulkAssign = isOperatorGameCreate && (selectedPartnerIds.length > 0 || selectedGameIds.length > 0);
+
 
   // Branding fields only apply to operator games that belong to the house partner (partner_id === 0).
   const partnerId = detail?.partner_id ?? row?.partner_id ?? null;
@@ -641,55 +657,63 @@ export function ActionDialog({
         }
       }
 
-      // Partner group mode: add every game of that partner in a loop, skipping
-      // the games already assigned to this operator.
-      if (bulkPartnerId) {
-        const topGames = bulkPartnerId === TOP_GAMES_VALUE;
-        const operatorId = String(values.operator_id ?? "");
+      // Bulk mode: assign every game of the selected partner group(s) plus any
+      // individually ticked games, skipping the ones already assigned.
+      if (bulkAssign) {
+        const operatorId = String(values.operator_id ?? row?.operator_id ?? soleOperatorId ?? "");
+        const partnerIds = selectedPartnerIds;
+        const wantsTopGames = partnerIds.includes(TOP_GAMES_VALUE);
+        const realPartnerIds = partnerIds.filter((id) => id !== TOP_GAMES_VALUE);
+
+        const needsCatalogue = partnerIds.length > 0;
         const [catalogue, existing] = await Promise.all([
-          apiRequest("/api/v1/games", {
-            query: topGames
-              ? { page: 1, per_page: 100000 }
-              : { page: 1, per_page: 500, partner_id: bulkPartnerId },
-          }),
+          needsCatalogue
+            ? apiRequest("/api/v1/games", { query: { page: 1, per_page: 100000 } })
+            : Promise.resolve(null),
           apiRequest("/api/v1/operator-games", {
             query: { page: 1, per_page: 500, operator_id: operatorId },
           }).catch(() => null),
         ]);
+
         const assigned = new Set(
           normalizeList(existing)
             .rows.map((item) => item.game_id ?? item.id)
             .filter((id) => id !== undefined && id !== null)
             .map((id) => String(id)),
         );
-        const catalogueRows = normalizeList(catalogue).rows;
-        let partnerGames: typeof catalogueRows;
-        if (topGames) {
-          const wanted = new Set(resolveTopGameIds(catalogueRows));
-          if (wanted.size === 0) {
+
+        const catalogueRows = catalogue ? normalizeList(catalogue).rows : [];
+        const wanted = new Set<string>(selectedGameIds);
+
+        if (wantsTopGames) {
+          const top = resolveTopGameIds(catalogueRows);
+          if (top.length === 0) {
             throw new Error(
               "No top games are configured (see VITE_TOP_GAME_IDS / VITE_TOP_GAME_NAMES).",
             );
           }
-          partnerGames = catalogueRows.filter((item) =>
-            wanted.has(String(item.id ?? item.game_id ?? "")),
-          );
-        } else {
-          partnerGames = catalogueRows.filter((item) => {
-            const partner = item.partner_id;
-            if (partner === undefined || partner === null) return true;
-            return String(partner) === bulkPartnerId;
-          });
+          for (const id of top) wanted.add(String(id));
         }
-        const pending = partnerGames
-          .map((item) => item.id ?? item.game_id)
-          .filter((id) => id !== undefined && id !== null)
-          .map((id) => String(id))
-          .filter((id) => !assigned.has(id));
+        for (const partnerId of realPartnerIds) {
+          for (const item of catalogueRows) {
+            if (String(item.partner_id ?? "") !== partnerId) continue;
+            const id = item.id ?? item.game_id;
+            if (id === undefined || id === null) continue;
+            wanted.add(String(id));
+          }
+        }
+
+        const all = Array.from(wanted);
+        const pending = all.filter((id) => !assigned.has(id));
+        if (all.length === 0) {
+          throw new Error("No games matched the selected partner group(s).");
+        }
 
         const base = { ...jsonBody };
         delete base.partner_id;
-        delete base.game_name;
+        delete base.game_id;
+        if (selectedGameIds.length !== 1) delete base.game_name;
+        if (operatorId) base.operator_id = Number.isNaN(Number(operatorId)) ? operatorId : Number(operatorId);
 
         const added: string[] = [];
         const failed: { game_id: string; message: string }[] = [];
@@ -709,16 +733,19 @@ export function ActionDialog({
         }
 
         if (added.length === 0 && failed.length > 0) {
-          throw new Error(`No games were added. ${failed[0].message}`);
+          const messages = Array.from(new Set(failed.map((item) => item.message)));
+          throw new Error(`No games were added. ${messages.join(" · ")}`);
         }
 
+        const skipped = all.length - pending.length;
         return {
-          status_description: `Added ${added.length} game(s) ${
-            bulkPartnerId === TOP_GAMES_VALUE ? "from top games" : "for this partner"
-          } · skipped ${partnerGames.length - pending.length} already assigned`,
-          data: { added, skipped: partnerGames.length - pending.length, failed },
+          status_description: `Added ${added.length} game(s) · skipped ${skipped} already assigned${
+            failed.length > 0 ? ` · ${failed.length} failed` : ""
+          }`,
+          data: { added, skipped, failed },
         };
       }
+
 
       // Operator game requests always carry the operator: admins pick it in the
       // dialog (or it comes from the row), client admins get their sole operator.
@@ -784,14 +811,22 @@ export function ActionDialog({
     },
     onSuccess: (data) => {
       mutation.reset();
-      setResult(null);
       setSubmitAttempted(false);
       const dict = data && typeof data === "object" && !Array.isArray(data) ? (data as Dict) : null;
       const description =
         (typeof dict?.status_description === "string" && dict.status_description) ||
         (typeof dict?.message === "string" && dict.message) ||
         undefined;
+      // Surface the whole API response (including per-game failures) in the dialog.
+      setResult(data ?? null);
+      const nested = dict?.data as { failed?: { game_id: string; message: string }[] } | undefined;
+      const failed = Array.isArray(nested?.failed) ? nested!.failed! : [];
+      setFailures(failed);
       toast.success(description ?? `${action.label} succeeded`);
+      for (const message of Array.from(new Set(failed.map((item) => item.message)))) {
+        toast.error(message);
+      }
+
       // Keep reference dropdowns (operators, partners, roles…) in sync after
       // create/update/delete so newly added records show up immediately.
       const refresh = useReferenceStore.getState().refresh;

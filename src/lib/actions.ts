@@ -20,10 +20,13 @@ export type ActionFieldType =
   | "operator"
   | "operators-multi"
   | "game"
+  | "games-multi"
   | "permission"
   | "permissions-multi"
   | "role"
   | "partner"
+  | "partners-multi"
+
   | "currency"
   | "currency-multi"
   | "money"
@@ -385,8 +388,15 @@ export const ACTIONS: Record<string, ActionDef[]> = {
       path: "/api/v1/operator-games",
       fields: [
         operatorField(),
-        { ...partnerField(false), topGroup: true },
-        { ...gameField(false), label: "Or select individual game", groupBy: "partner_name", catalog: true },
+        { ...partnerField(false), type: "partners-multi", label: "Partner groups", topGroup: true },
+        {
+          ...gameField(false),
+          type: "games-multi",
+          label: "Or select individual games",
+          groupBy: "partner_name",
+          catalog: true,
+        },
+
         { name: "game_name", label: "Display name", type: "text" },
         { name: "minimum_stake", label: "Minimum stake (per currency)", type: "money", required: true, dependsOn: "operator_id" },
         { name: "maximum_stake", label: "Maximum stake (per currency)", type: "money", required: true, dependsOn: "operator_id" },
