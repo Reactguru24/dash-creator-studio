@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider, themeBootstrapScript } from "../lib/theme";
 import { Toaster } from "../components/ui/sonner";
 import { useReferenceStore } from "@/lib/stores/reference-store";
+import { tokenStore } from "@/lib/api";
 
 
 function NotFoundComponent() {
@@ -138,14 +139,25 @@ function RootComponent() {
   // and avoid lazy fetches when the user first opens menus.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const s = useReferenceStore.getState();
-    void s.ensure("operator");
-    void s.ensure("permission");
-    void s.ensure("role");
-    void s.ensure("partner");
-    // Catalogue is large but often useful; load it so game dropdowns have a cache.
-    void s.ensure("game");
-    void s.ensure("catalogGame");
+    const prefetch = () => {
+      // Only signed-in sessions may read reference lists.
+      if (!tokenStore.access) return;
+      const s = useReferenceStore.getState();
+      void s.ensure("operator");
+      void s.ensure("permission");
+      void s.ensure("role");
+      void s.ensure("partner");
+      // Catalogue is large but often useful; load it so game dropdowns have a cache.
+      void s.ensure("game");
+      void s.ensure("catalogGame");
+    };
+    prefetch();
+    window.addEventListener("bk-auth-change", prefetch);
+    window.addEventListener("storage", prefetch);
+    return () => {
+      window.removeEventListener("bk-auth-change", prefetch);
+      window.removeEventListener("storage", prefetch);
+    };
   }, []);
 
   return (

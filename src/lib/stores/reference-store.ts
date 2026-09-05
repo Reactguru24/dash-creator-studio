@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { apiRequest, normalizeList, metaNumber, type Dict } from "@/lib/api";
+import { apiRequest, normalizeList, metaNumber, tokenStore, type Dict } from "@/lib/api";
 
 export type Option = { value: string; label: string };
 
@@ -93,6 +93,9 @@ type ReferenceStore = {
 
 export const useReferenceStore = create<ReferenceStore>((set, get) => {
   const load = async (kind: Kind, searchText?: string) => {
+    // Reference lists are bearer-protected: skip silently when signed out so
+    // the login screen never shows "Missing bearer token" warnings.
+    if (!tokenStore.access) return;
     const cfg = CONFIG[kind];
     const trimmed = searchText?.trim() ?? "";
     const query = { page: 1, per_page: cfg.perPage } as Record<string, string | number>;
@@ -153,6 +156,7 @@ export const useReferenceStore = create<ReferenceStore>((set, get) => {
   // operator is selected; otherwise it loads the global catalogue from
   // `/api/v1/games` (see `load` above) with a large `per_page`.
   const loadGamesForOperator = async (operatorId: string, searchText?: string) => {
+    if (!tokenStore.access) return;
     const cfg = CONFIG.game;
     const trimmed = searchText?.trim() ?? "";
     const query: Record<string, string | number | undefined> = {
