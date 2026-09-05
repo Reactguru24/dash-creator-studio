@@ -220,12 +220,7 @@ export function DataTable({
               {displayRows.map((row, index) => (
                 <tr
                   key={index}
-                  onClick={clientAdmin ? undefined : () => setSelected(row)}
-                  className={cn(
-                    "border-b border-border/60 transition-colors last:border-0",
-                    !clientAdmin && "cursor-pointer hover:bg-surface/70",
-                    clientAdmin && "hover:bg-surface/40",
-                  )}
+                  className="border-b border-border/60 transition-colors last:border-0 hover:bg-surface/40"
                 >
                   {cols.map((col) => {
                     const raw = row[col];
