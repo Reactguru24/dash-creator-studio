@@ -220,12 +220,7 @@ export function DataTable({
               {displayRows.map((row, index) => (
                 <tr
                   key={index}
-                  onClick={clientAdmin ? undefined : () => setSelected(row)}
-                  className={cn(
-                    "border-b border-border/60 transition-colors last:border-0",
-                    !clientAdmin && "cursor-pointer hover:bg-surface/70",
-                    clientAdmin && "hover:bg-surface/40",
-                  )}
+                  className="border-b border-border/60 transition-colors last:border-0 hover:bg-surface/40"
                 >
                   {cols.map((col) => {
                     const raw = row[col];
@@ -272,7 +267,15 @@ export function DataTable({
                   ) : null}
                   <td className="px-2 text-muted-foreground">
                     {!clientAdmin ? (
-                      <ChevronRight className="size-4" strokeWidth={1.75} />
+                      <button
+                        type="button"
+                        aria-label="Open record detail"
+                        title="Open record detail"
+                        onClick={() => setSelected(row)}
+                        className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
+                      >
+                        <ChevronRight className="size-4" strokeWidth={1.75} />
+                      </button>
                     ) : null}
                   </td>
                 </tr>
