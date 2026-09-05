@@ -427,6 +427,33 @@ export const RESOURCES: Record<string, ResourceDef> = {
     paginated: true,
     filters: pageFilters,
   },
+  "partner-operator-configs": {
+    key: "partner-operator-configs",
+    title: "Partner configs",
+    description:
+      "GET /api/v1/partner-operator-configs — per-operator overrides of a partner integration.",
+    path: "/api/v1/partner-operator-configs",
+    paginated: true,
+    clientScoped: true,
+    columns: ["id", "partner_id", "partner_name", "operator_id", "status", "configs"],
+    filters: [
+      { name: "partner_id", label: "Partner", type: "partner" },
+      { name: "operator_id", label: "Operator", type: "operator" },
+      statusSelect(),
+    ],
+  },
+  "partner-launch-resolver": {
+    key: "partner-launch-resolver",
+    title: "Launch resolver",
+    description:
+      "GET /api/v1/partner-operator-configs/resolved-launch — the partner config used for a given game launch.",
+    path: "/api/v1/partner-operator-configs/resolved-launch",
+    filters: [
+      { name: "operator_id", label: "Operator (required)", type: "operator", required: true },
+      { name: "game_id", label: "Game", type: "game" },
+      { name: "game_uuid", label: "Game UUID", type: "text" },
+    ],
+  },
   roles: {
     key: "roles",
     title: "Roles",

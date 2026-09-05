@@ -500,6 +500,65 @@ export const ACTIONS: Record<string, ActionDef[]> = {
     },
   ],
 
+  "partner-operator-configs": [
+    {
+      key: "partner-operator-config-create",
+      label: "Create config",
+      description: "POST /api/v1/partner-operator-configs",
+      method: "POST",
+      scope: "collection",
+      path: "/api/v1/partner-operator-configs",
+      fields: [
+        { name: "partner_id", label: "Partner", type: "partner", required: true },
+        operatorField(true),
+        {
+          name: "configs",
+          label: "Configs",
+          type: "json",
+          required: true,
+          placeholder: '{"launch_api":"https://…"}',
+        },
+        statusField(),
+      ],
+    },
+    {
+      key: "partner-operator-config-update",
+      label: "Edit config",
+      description: "PATCH /api/v1/partner-operator-configs/{id}",
+      method: "PATCH",
+      scope: "row",
+      path: "/api/v1/partner-operator-configs/{id}",
+      idKey: "id",
+      prefill: ["configs", "status"],
+      fields: [
+        { name: "configs", label: "Configs", type: "json" },
+        statusField(),
+      ],
+    },
+  ],
+
+  roles: [
+    {
+      key: "role-permissions-replace",
+      label: "Set permissions",
+      description:
+        "PUT /api/v1/roles/{id}/permissions — replaces the complete permission set for this role.",
+      method: "PUT",
+      scope: "row",
+      path: "/api/v1/roles/{id}/permissions",
+      idKey: "id",
+      fields: [
+        {
+          name: "permission_ids",
+          label: "Permissions",
+          type: "permissions-multi",
+          required: true,
+          help: "The role will end up with exactly these permissions.",
+        },
+      ],
+    },
+  ],
+
   permissions: [
     {
       key: "permission-create",

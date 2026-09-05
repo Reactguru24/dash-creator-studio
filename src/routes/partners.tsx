@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ResourcePage } from "@/components/dashboard/resource-page";
+import { TabbedResourcePage } from "@/components/dashboard/resource-page";
 
 export const Route = createFileRoute("/partners")({
   head: () => ({
@@ -12,5 +12,11 @@ export const Route = createFileRoute("/partners")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: () => <ResourcePage resourceKey="partners" />,
+  component: () => (
+    <TabbedResourcePage
+      title="Partners"
+      subtitle="Providers, per-operator configuration and launch resolution"
+      resourceKeys={["partners", "partner-operator-configs", "partner-launch-resolver"]}
+    />
+  ),
 });
