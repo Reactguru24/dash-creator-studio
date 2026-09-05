@@ -1,5 +1,5 @@
 export const API_BASE = (
-  import.meta.env.VITE_API_BASE_URL || "https://api.backoffice.staging.eurovirtuals.co.uk"
+  import.meta.env.VITE_API_BASE_URL || "https://api.backoffice.staging.betkraft.co.uk"
 ).replace(/\/$/, "");
 
 const TOKEN_KEY = "bk_access_token";
