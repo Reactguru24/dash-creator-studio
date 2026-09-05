@@ -104,10 +104,15 @@ function initialState(action: ActionDef, row?: Dict): Record<string, FormValue> 
 
 function coerce(field: ActionField, value: FormValue, operatorCurrencies: string[] = []): unknown {
   if (field.type === "boolean") return Boolean(value);
+  if (field.type === "partners-multi" || field.type === "games-multi") {
+    // Handled by the bulk assignment loop, never sent as a body field.
+    return undefined;
+  }
   if (field.type === "permissions-multi" || field.type === "operators-multi") {
     if (!Array.isArray(value) || value.length === 0) return undefined;
     return value.map((v) => Number(v));
   }
+
   if (value === null || value === "") return undefined;
   if (field.type === "number") return Number.parseInt(String(value), 10);
   if (field.type === "decimal") return Number(value);
