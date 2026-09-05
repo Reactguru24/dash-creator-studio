@@ -77,10 +77,16 @@ function initialState(action: ActionDef, row?: Dict): Record<string, FormValue> 
       state[field.name] = false;
       continue;
     }
-    if (field.type === "permissions-multi" || field.type === "operators-multi") {
+    if (
+      field.type === "permissions-multi" ||
+      field.type === "operators-multi" ||
+      field.type === "partners-multi" ||
+      field.type === "games-multi"
+    ) {
       state[field.name] = [];
       continue;
     }
+
     const prefilled = action.prefill?.includes(field.name)
       ? prefillValue(field.name, row)
       : undefined;
