@@ -259,9 +259,62 @@ export function ReferenceSelect({
     return options.length > 0 ? { label: extraGroup.label, options } : null;
   }, [extraGroup, search]);
 
-  const selectedLabel =
+  const multiValues = useMemo(() => (multiple ? (values ?? []) : []), [multiple, values]);
+  const selectedSet = useMemo(() => new Set(multiValues), [multiValues]);
+  const toggleValue = (v: string) => {
+    if (!onChangeMulti) return;
+    const next = new Set(selectedSet);
+    if (next.has(v)) next.delete(v);
+    else next.add(v);
+    onChangeMulti(Array.from(next));
+  };
+  const labelFor = (v: string) =>
+    query.options.find((o) => o.value === v)?.label ??
+    extraGroup?.options.find((o) => o.value === v)?.label ??
+    `#${v}`;
+
+  const singleLabel =
     selected?.label ?? extraGroup?.options.find((o) => o.value === value)?.label ?? "";
+  const selectedLabel = multiple
+    ? multiValues.length === 0
+      ? ""
+      : multiValues.length <= 2
+        ? multiValues.map(labelFor).join(", ")
+        : `${multiValues.length} selected`
+    : singleLabel;
   const emptyMessage = query.loading ? "Loading…" : "No results found.";
+
+  const renderOption = (option: Option) =>
+    multiple ? (
+      <label
+        key={option.value}
+        className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground transition-colors hover:bg-accent/50"
+      >
+        <input
+          type="checkbox"
+          className="size-4 accent-[var(--color-primary)]"
+          checked={selectedSet.has(option.value)}
+          onChange={() => toggleValue(option.value)}
+        />
+        <span className="truncate">{option.label}</span>
+      </label>
+    ) : (
+      <button
+        key={option.value}
+        type="button"
+        onClick={() => {
+          onChange(option.value);
+          setOpen(false);
+        }}
+        className={cn(
+          "flex w-full items-center rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-accent/50",
+          value === option.value && "bg-primary/10",
+        )}
+      >
+        {option.label}
+      </button>
+    );
+
 
   return (
     <div className={cn("relative flex flex-col gap-1", className)} ref={ref}>
