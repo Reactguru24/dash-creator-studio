@@ -366,7 +366,9 @@ export function ActionDialog({
 
   const selectedGame = useMemo(() => {
     const source = detail ?? row;
-    const id = String(values.game_id ?? source?.game_id ?? "");
+    const raw = values.game_id;
+    const first = Array.isArray(raw) ? raw[0] : raw;
+    const id = String(first ?? source?.game_id ?? "");
     const fromApi =
       typeof source?.master_game_name === "string" && source.master_game_name
         ? source.master_game_name
@@ -385,12 +387,15 @@ export function ActionDialog({
   const jackpot = isOperatorGameAction && isJackpotGame(selectedGame);
   const denomination = isOperatorGameAction && isDenominationGame(selectedGame);
 
-  // Partner group and individual game are mutually exclusive.
-  const partnerGroupId =
-    action.key === "operator-game-create" ? String(values.partner_id ?? "") : "";
-  const individualGameId =
-    action.key === "operator-game-create" ? String(values.game_id ?? "") : "";
-  const bulkPartnerId = partnerGroupId && !individualGameId ? partnerGroupId : null;
+  // Add-modal multi-selection: any number of partner groups and/or games.
+  const isOperatorGameCreate = action.key === "operator-game-create";
+  const asList = (value: FormValue): string[] =>
+    Array.isArray(value) ? value.filter(Boolean).map(String) : value ? [String(value)] : [];
+  const selectedPartnerIds = isOperatorGameCreate ? asList(values.partner_id ?? null) : [];
+  const selectedGameIds = isOperatorGameCreate ? asList(values.game_id ?? null) : [];
+  const individualGameId = selectedGameIds[0] ?? "";
+  const bulkAssign = isOperatorGameCreate && (selectedPartnerIds.length > 0 || selectedGameIds.length > 0);
+
 
   // Branding fields only apply to operator games that belong to the house partner (partner_id === 0).
   const partnerId = detail?.partner_id ?? row?.partner_id ?? null;
