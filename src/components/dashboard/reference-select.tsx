@@ -122,9 +122,9 @@ export function ReferenceSelect({
   extraGroup?: { label: string; options: Option[] };
 }) {
   const [open, setOpen] = useState(false);
-  // Only fetch the reference list when the user opens the dropdown (or a value
-  // is already selected and needs a label) — never on page load.
-  const shouldLoad = open || Boolean(value);
+  // Cache-first: `useReferenceOptions` only calls the API when the list isn't
+  // already cached, so requesting it on mount costs nothing on later pages.
+  const shouldLoad = true;
   const query = useReferenceOptions(kind, disabled, operatorId, shouldLoad);
   const { user } = useAuth();
   const scope = clientScope(user);
@@ -166,13 +166,13 @@ export function ReferenceSelect({
   }, [required, disabled, kind, operatorId, operatorScoped, ensureGamesForOperator, ensureGlobal]);
 
   useEffect(() => {
-    if (kind !== "game" || disabled || !shouldLoad) return;
+    if (kind !== "game" || disabled) return;
     if (operatorId && operatorScoped) {
       void ensureGamesForOperator(operatorId);
     } else {
       void ensureGlobal("game");
     }
-  }, [kind, operatorId, disabled, operatorScoped, shouldLoad, ensureGamesForOperator, ensureGlobal]);
+  }, [kind, operatorId, disabled, operatorScoped, ensureGamesForOperator, ensureGlobal]);
 
   // Reference lists (operators, partners, roles…) can go stale when records are
   // created elsewhere in the app, so re-fetch them each time the menu is opened.
