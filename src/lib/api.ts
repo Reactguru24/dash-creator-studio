@@ -1,6 +1,24 @@
-export const API_BASE = (
-  import.meta.env.VITE_API_BASE_URL || "https://api.backoffice.staging.betkraft.co.uk"
-).replace(/\/$/, "");
+import { parseUrlList } from "@/lib/env-list";
+
+/**
+ * VITE_API_BASE_URL may hold a single URL or a JSON array where the first
+ * entry is staging and the second is production, e.g.
+ * ["https://api.backoffice.staging.betkraft.co.uk","https://api.backoffice.betkraft.co.uk"]
+ */
+function resolveApiBase(): string {
+  const configured = parseUrlList(import.meta.env.VITE_API_BASE_URL);
+  const fallback = "https://api.backoffice.staging.betkraft.co.uk";
+  if (configured.length === 0) return fallback;
+  if (configured.length === 1) return configured[0];
+
+  const host = typeof window !== "undefined" ? window.location.hostname : "";
+  const isProduction =
+    Boolean(host) && !/localhost|127\.0\.0\.1|staging|preview|dev|lovable\.app/i.test(host);
+  return isProduction ? configured[1] : configured[0];
+}
+
+export const API_BASE = resolveApiBase().replace(/\/$/, "");
+
 
 const TOKEN_KEY = "bk_access_token";
 const REFRESH_KEY = "bk_refresh_token";

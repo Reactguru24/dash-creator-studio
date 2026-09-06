@@ -111,6 +111,8 @@ export function ReferenceSelect({
   multiple,
   values,
   onChangeMulti,
+  partnerFilter,
+
 }: {
   kind: Kind;
   id?: string;
@@ -127,7 +129,10 @@ export function ReferenceSelect({
   multiple?: boolean;
   values?: string[];
   onChangeMulti?: (value: string[]) => void;
+  /** Show a "Filter by partner" picker above the list (game lists only). */
+  partnerFilter?: boolean;
 }) {
+
 
   const [open, setOpen] = useState(false);
   // Cache-first: `useReferenceOptions` only calls the API when the list isn't
@@ -234,10 +239,25 @@ export function ReferenceSelect({
       ? "Select role"
       : "Select permission";
 
+  // Optional "filter by partner" picker: narrows the game rows to one partner.
+  const [partnerFilterId, setPartnerFilterId] = useState("");
+  const partnerState = useReferenceStore((s) => s.partner);
+  const ensurePartners = useReferenceStore((s) => s.ensure);
+  useEffect(() => {
+    if (!partnerFilter || disabled) return;
+    void ensurePartners("partner");
+  }, [partnerFilter, disabled, ensurePartners]);
+
+  const partnerScopedRows = useMemo(() => {
+    if (!partnerFilter || !partnerFilterId) return scopedRows;
+    return scopedRows.filter((row) => String(row.partner_id ?? "") === partnerFilterId);
+  }, [scopedRows, partnerFilter, partnerFilterId]);
+
   const filtered = useMemo(
-    () => filterRows(scopedRows, query.options, search, groupBy, kind),
-    [scopedRows, query.options, search, groupBy, kind],
+    () => filterRows(partnerScopedRows, query.options, search, groupBy, kind),
+    [partnerScopedRows, query.options, search, groupBy, kind],
   );
+
   const options = useMemo(
     () => (!groupBy ? (filtered as Option[]) : ([] as Option[])),
     [filtered, groupBy],
@@ -360,7 +380,27 @@ export function ReferenceSelect({
               <div className="ml-3 text-xs text-muted-foreground">{query.total.toLocaleString("en-GB")} games</div>
             ) : null}
           </div>
+          {partnerFilter ? (
+            <div className="flex items-center gap-2 border-b border-muted/20 px-3 py-2">
+              <span className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
+                Partner
+              </span>
+              <select
+                value={partnerFilterId}
+                onChange={(event) => setPartnerFilterId(event.target.value)}
+                className="h-8 flex-1 rounded-md border border-input bg-surface px-2 text-sm outline-none focus:border-primary/70"
+              >
+                <option value="">All partners</option>
+                {partnerState.options.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
           <div className="max-h-64 overflow-y-auto px-1 py-1">
+
             {extra ? (
               <div className="space-y-1 py-1">
                 <div className="px-3 text-xs uppercase tracking-[0.12em] text-muted-foreground">

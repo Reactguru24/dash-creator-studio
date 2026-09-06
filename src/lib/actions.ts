@@ -402,7 +402,11 @@ export const ACTIONS: Record<string, ActionDef[]> = {
         { name: "maximum_stake", label: "Maximum stake (per currency)", type: "money", required: true, dependsOn: "operator_id" },
         { name: "maximum_win", label: "Maximum win (per currency)", type: "money", required: true, dependsOn: "operator_id" },
         { name: "denomination", label: "Denomination (per currency)", type: "object", dependsOn: "operator_id" },
+        // Jackpot-only inputs (shown when the selected game id is in VITE_JACKPOT_GAMES).
+        { name: "stake", label: "Stake (per currency)", type: "money", dependsOn: "operator_id" },
+        { name: "minimum_win", label: "Minimum payout (per currency)", type: "money", dependsOn: "operator_id" },
         { name: "total_games", label: "Total games", type: "number" },
+
 
 
       ],
