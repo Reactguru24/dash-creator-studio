@@ -127,7 +127,10 @@ export function ReferenceSelect({
   multiple?: boolean;
   values?: string[];
   onChangeMulti?: (value: string[]) => void;
+  /** Show a "Filter by partner" picker above the list (game lists only). */
+  partnerFilter?: boolean;
 }) {
+
 
   const [open, setOpen] = useState(false);
   // Cache-first: `useReferenceOptions` only calls the API when the list isn't
