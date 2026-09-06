@@ -14,7 +14,15 @@ import { resolvePath, type ActionDef, type ActionField } from "@/lib/actions";
 import { CURRENCY_OPTIONS } from "@/lib/utils/currencies";
 import { cn } from "@/lib/utils";
 import { stripEndpoint } from "@/lib/format";
-import { TOP_GAMES_LABEL, TOP_GAMES_VALUE, resolveTopGameIds } from "@/lib/top-games";
+import {
+  TOP_GAMES_LABEL,
+  TOP_GAMES_VALUE,
+  TOP_GAME_GROUPS,
+  resolveTopGameIds,
+  topGroupValue,
+  isTopGroupValue,
+} from "@/lib/top-games";
+
 import { ReadableValue } from "./readable-value";
 import { ReferenceSelect, MultiReferenceSelect } from "./reference-select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
@@ -662,8 +670,10 @@ export function ActionDialog({
       if (bulkAssign) {
         const operatorId = String(values.operator_id ?? row?.operator_id ?? soleOperatorId ?? "");
         const partnerIds = selectedPartnerIds;
-        const wantsTopGames = partnerIds.includes(TOP_GAMES_VALUE);
-        const realPartnerIds = partnerIds.filter((id) => id !== TOP_GAMES_VALUE);
+        const topSelections = partnerIds.filter((id) => isTopGroupValue(id));
+        const wantsTopGames = topSelections.length > 0;
+        const realPartnerIds = partnerIds.filter((id) => !isTopGroupValue(id));
+
 
         const needsCatalogue = partnerIds.length > 0;
         const [catalogue, existing] = await Promise.all([
@@ -686,7 +696,7 @@ export function ActionDialog({
         const wanted = new Set<string>(selectedGameIds);
 
         if (wantsTopGames) {
-          const top = resolveTopGameIds(catalogueRows);
+          const top = resolveTopGameIds(catalogueRows, topSelections);
           if (top.length === 0) {
             throw new Error(
               "No top games are configured (see VITE_TOP_GAME_IDS / VITE_TOP_GAME_NAMES).",
@@ -1140,6 +1150,23 @@ export function ActionDialog({
   );
 }
 
+/** Top game groups configured in `.env` (VITE_TOP_GAME_IDS). */
+function topGamesExtraGroup() {
+  if (TOP_GAME_GROUPS.length === 0) return undefined;
+  const options =
+    TOP_GAME_GROUPS.length === 1
+      ? [{ value: TOP_GAMES_VALUE, label: "Add all top games" }]
+      : [
+          { value: TOP_GAMES_VALUE, label: "Add all top games" },
+          ...TOP_GAME_GROUPS.map((group, index) => ({
+            value: topGroupValue(index),
+            label: `Top games ${index + 1} (${group.length} game${group.length === 1 ? "" : "s"})`,
+          })),
+        ];
+  return { label: TOP_GAMES_LABEL, options };
+}
+
+
 const inputClass =
   "num h-9 w-full rounded-md border border-input bg-surface px-2.5 text-sm outline-none placeholder:text-muted-foreground/60 focus:border-primary/70 focus:ring-2 focus:ring-ring";
 
@@ -1158,7 +1185,28 @@ function FieldInput({
   disabled?: boolean;
   onChange: (value: FormValue) => void;
 }) {
+  if (field.type === "partners-multi" || field.type === "games-multi") {
+    const isGames = field.type === "games-multi";
+    return (
+      <ReferenceSelect
+        id={id}
+        kind={isGames ? (field.catalog ? "catalogGame" : "game") : "partner"}
+        multiple
+        values={Array.isArray(value) ? value.map(String) : []}
+        onChangeMulti={onChange}
+        groupBy={field.groupBy}
+        partnerFilter={isGames}
+        extraGroup={field.topGroup ? topGamesExtraGroup() : undefined}
+        disabled={disabled}
+        operatorId={isGames && !field.catalog ? String(values.operator_id ?? "") : undefined}
+        value=""
+        onChange={() => {}}
+      />
+    );
+  }
+
   if (
+
     field.type === "operator" ||
     field.type === "game" ||
     field.type === "permission" ||
