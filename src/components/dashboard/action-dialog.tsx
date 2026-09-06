@@ -696,7 +696,7 @@ export function ActionDialog({
         const wanted = new Set<string>(selectedGameIds);
 
         if (wantsTopGames) {
-          const top = resolveTopGameIds(catalogueRows);
+          const top = resolveTopGameIds(catalogueRows, topSelections);
           if (top.length === 0) {
             throw new Error(
               "No top games are configured (see VITE_TOP_GAME_IDS / VITE_TOP_GAME_NAMES).",
