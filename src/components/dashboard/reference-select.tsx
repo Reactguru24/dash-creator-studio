@@ -380,7 +380,27 @@ export function ReferenceSelect({
               <div className="ml-3 text-xs text-muted-foreground">{query.total.toLocaleString("en-GB")} games</div>
             ) : null}
           </div>
+          {partnerFilter ? (
+            <div className="flex items-center gap-2 border-b border-muted/20 px-3 py-2">
+              <span className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
+                Partner
+              </span>
+              <select
+                value={partnerFilterId}
+                onChange={(event) => setPartnerFilterId(event.target.value)}
+                className="h-8 flex-1 rounded-md border border-input bg-surface px-2 text-sm outline-none focus:border-primary/70"
+              >
+                <option value="">All partners</option>
+                {partnerState.options.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
           <div className="max-h-64 overflow-y-auto px-1 py-1">
+
             {extra ? (
               <div className="space-y-1 py-1">
                 <div className="px-3 text-xs uppercase tracking-[0.12em] text-muted-foreground">
