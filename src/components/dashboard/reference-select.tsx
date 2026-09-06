@@ -239,10 +239,25 @@ export function ReferenceSelect({
       ? "Select role"
       : "Select permission";
 
+  // Optional "filter by partner" picker: narrows the game rows to one partner.
+  const [partnerFilterId, setPartnerFilterId] = useState("");
+  const partnerState = useReferenceStore((s) => s.partner);
+  const ensurePartners = useReferenceStore((s) => s.ensure);
+  useEffect(() => {
+    if (!partnerFilter || disabled) return;
+    void ensurePartners("partner");
+  }, [partnerFilter, disabled, ensurePartners]);
+
+  const partnerScopedRows = useMemo(() => {
+    if (!partnerFilter || !partnerFilterId) return scopedRows;
+    return scopedRows.filter((row) => String(row.partner_id ?? "") === partnerFilterId);
+  }, [scopedRows, partnerFilter, partnerFilterId]);
+
   const filtered = useMemo(
-    () => filterRows(scopedRows, query.options, search, groupBy, kind),
-    [scopedRows, query.options, search, groupBy, kind],
+    () => filterRows(partnerScopedRows, query.options, search, groupBy, kind),
+    [partnerScopedRows, query.options, search, groupBy, kind],
   );
+
   const options = useMemo(
     () => (!groupBy ? (filtered as Option[]) : ([] as Option[])),
     [filtered, groupBy],
