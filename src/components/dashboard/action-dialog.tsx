@@ -1150,6 +1150,23 @@ export function ActionDialog({
   );
 }
 
+/** Top game groups configured in `.env` (VITE_TOP_GAME_IDS). */
+function topGamesExtraGroup() {
+  if (TOP_GAME_GROUPS.length === 0) return undefined;
+  const options =
+    TOP_GAME_GROUPS.length === 1
+      ? [{ value: TOP_GAMES_VALUE, label: "Add all top games" }]
+      : [
+          { value: TOP_GAMES_VALUE, label: "Add all top games" },
+          ...TOP_GAME_GROUPS.map((group, index) => ({
+            value: topGroupValue(index),
+            label: `Top games ${index + 1} (${group.length} game${group.length === 1 ? "" : "s"})`,
+          })),
+        ];
+  return { label: TOP_GAMES_LABEL, options };
+}
+
+
 const inputClass =
   "num h-9 w-full rounded-md border border-input bg-surface px-2.5 text-sm outline-none placeholder:text-muted-foreground/60 focus:border-primary/70 focus:ring-2 focus:ring-ring";
 
