@@ -14,7 +14,15 @@ import { resolvePath, type ActionDef, type ActionField } from "@/lib/actions";
 import { CURRENCY_OPTIONS } from "@/lib/utils/currencies";
 import { cn } from "@/lib/utils";
 import { stripEndpoint } from "@/lib/format";
-import { TOP_GAMES_LABEL, TOP_GAMES_VALUE, resolveTopGameIds } from "@/lib/top-games";
+import {
+  TOP_GAMES_LABEL,
+  TOP_GAMES_VALUE,
+  TOP_GAME_GROUPS,
+  resolveTopGameIds,
+  topGroupValue,
+  isTopGroupValue,
+} from "@/lib/top-games";
+
 import { ReadableValue } from "./readable-value";
 import { ReferenceSelect, MultiReferenceSelect } from "./reference-select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
