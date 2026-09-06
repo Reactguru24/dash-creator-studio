@@ -111,6 +111,8 @@ export function ReferenceSelect({
   multiple,
   values,
   onChangeMulti,
+  partnerFilter,
+
 }: {
   kind: Kind;
   id?: string;
