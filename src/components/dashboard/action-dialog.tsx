@@ -670,8 +670,10 @@ export function ActionDialog({
       if (bulkAssign) {
         const operatorId = String(values.operator_id ?? row?.operator_id ?? soleOperatorId ?? "");
         const partnerIds = selectedPartnerIds;
-        const wantsTopGames = partnerIds.includes(TOP_GAMES_VALUE);
-        const realPartnerIds = partnerIds.filter((id) => id !== TOP_GAMES_VALUE);
+        const topSelections = partnerIds.filter((id) => isTopGroupValue(id));
+        const wantsTopGames = topSelections.length > 0;
+        const realPartnerIds = partnerIds.filter((id) => !isTopGroupValue(id));
+
 
         const needsCatalogue = partnerIds.length > 0;
         const [catalogue, existing] = await Promise.all([
