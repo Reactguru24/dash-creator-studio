@@ -1158,7 +1158,28 @@ function FieldInput({
   disabled?: boolean;
   onChange: (value: FormValue) => void;
 }) {
+  if (field.type === "partners-multi" || field.type === "games-multi") {
+    const isGames = field.type === "games-multi";
+    return (
+      <ReferenceSelect
+        id={id}
+        kind={isGames ? (field.catalog ? "catalogGame" : "game") : "partner"}
+        multiple
+        values={Array.isArray(value) ? value.map(String) : []}
+        onChangeMulti={onChange}
+        groupBy={field.groupBy}
+        partnerFilter={isGames}
+        extraGroup={field.topGroup ? topGamesExtraGroup() : undefined}
+        disabled={disabled}
+        operatorId={isGames && !field.catalog ? String(values.operator_id ?? "") : undefined}
+        value=""
+        onChange={() => {}}
+      />
+    );
+  }
+
   if (
+
     field.type === "operator" ||
     field.type === "game" ||
     field.type === "permission" ||
