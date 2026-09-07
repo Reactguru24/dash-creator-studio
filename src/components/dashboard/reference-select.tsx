@@ -340,14 +340,21 @@ export function ReferenceSelect({
     return options.length > 0 ? { label: extraGroup.label, options: [...options].sort((a, b) => a.label.localeCompare(b.label)) } : null;
   }, [extraGroup, search]);
 
-  const visibleCount = groupBy
-    ? groups.reduce((count, group) => count + group.options.length, 0)
-    : options.length;
+  const pageSize = kind === "game" ? 300 : 200;
 
-  const hasMore = !query.loading &&
-    typeof query.total === "number"
-      ? query.total > 200 && query.rows.length < query.total && visibleCount >= 200
-      : query.rows.length > 200 && visibleCount >= 200;
+  // "Load more" whenever the server reports more records than we have cached.
+  // When the API omits a total, a full page of results implies another page exists.
+  const hasMore =
+    !query.loading && query.rows.length > 0
+      ? typeof query.total === "number"
+        ? query.rows.length < query.total
+        : query.rows.length % pageSize === 0
+      : false;
+
+  useEffect(() => {
+    // New search term or partner filter restarts pagination at page 1.
+    setPage(1);
+  }, [search, partnerFilterId]);
 
   const loadMore = async () => {
     if (!hasMore || query.loading) return;
@@ -563,10 +570,6 @@ export function MultiReferenceSelect({
     if (!open) setSearch("");
   }, [open]);
 
-  useEffect(() => {
-    if (!open || kind !== "game" || !partnerFilter || !partnerFilterId) return;
-    void useReferenceStore.getState().refresh("game", search, 1, false, partnerFilterId);
-  }, [open, kind, partnerFilter, partnerFilterId, search]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
