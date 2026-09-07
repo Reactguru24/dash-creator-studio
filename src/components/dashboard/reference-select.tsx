@@ -548,7 +548,9 @@ export function ReferenceSelect({
                   onClick={() => void loadMore()}
                   className="w-full rounded-md border border-input bg-surface px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-accent/50"
                 >
-                  See more
+                  {query.loading
+                    ? "Loading…"
+                    : `Load more${typeof query.total === "number" ? ` (${query.rows.length.toLocaleString("en-GB")} of ${query.total.toLocaleString("en-GB")})` : ""}`}
                 </button>
               </div>
             ) : null}
