@@ -940,6 +940,7 @@ export function ActionDialog({
       onOpenChange={(next) => {
         mutation.reset();
         setResult(null);
+        setFailures([]);
         setSubmitAttempted(false);
         if (!next) pristineRef.current = null;
         onOpenChange(next);
@@ -968,6 +969,7 @@ export function ActionDialog({
             event.preventDefault();
             mutation.reset();
             setResult(null);
+            setFailures([]);
             setSubmitAttempted(true);
             mutation.mutate();
           }}
@@ -1108,6 +1110,15 @@ export function ActionDialog({
                   <ReadableValue value={result} />
                 </div>
               )}
+              {failures.length > 0 ? (
+                <ul className="mt-2 max-h-32 list-disc space-y-1 overflow-y-auto pl-5 text-xs text-destructive">
+                  {failures.map((failure) => (
+                    <li key={failure.game_id}>
+                      Game #{failure.game_id}: {failure.message}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
           ) : null}
 

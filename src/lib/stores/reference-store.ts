@@ -92,7 +92,7 @@ type ReferenceStore = {
   ensure: (kind: Kind) => Promise<void>;
   refresh: (kind: Kind, searchText?: string, page?: number, append?: boolean, partnerId?: string) => Promise<void>;
   ensureGamesForOperator: (operatorId: string) => Promise<void>;
-  refreshGamesForOperator: (operatorId: string, searchText?: string) => Promise<void>;
+  refreshGamesForOperator: (operatorId: string, searchText?: string, page?: number, append?: boolean) => Promise<void>;
 };
 
 export const useReferenceStore = create<ReferenceStore>((set, get) => {
