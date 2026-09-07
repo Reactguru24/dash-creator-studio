@@ -26,6 +26,7 @@ const emptyList = (): ListState => ({
 });
 
 function toOptions(rows: Dict[], labelKeys: string[], kind: Kind): Option[] {
+  const seen = new Set<string>();
   return rows
     .map((row) => {
       const id = row.id ?? row.operator_id ?? row.game_id ?? row.permission_id ?? row.role_id;
@@ -59,7 +60,10 @@ function toOptions(rows: Dict[], labelKeys: string[], kind: Kind): Option[] {
         }
       }
 
-      return { value: String(id), label };
+      const value = String(id);
+      if (seen.has(value)) return null;
+      seen.add(value);
+      return { value, label };
     })
     .filter((option): option is Option => option !== null)
     .sort((a, b) => a.label.localeCompare(b.label));
@@ -70,11 +74,11 @@ const CONFIG: Record<
   { path: string; perPage: number; labels: string[] }
 > = {
   operator: { path: "/api/v1/clients", perPage: 200, labels: ["name", "client_name", "email"] },
-  game: { path: "/api/v1/operator-games", perPage: 100000, labels: ["game_name", "name"] },
+  game: { path: "/api/v1/operator-games", perPage: 200, labels: ["game_name", "name"] },
   permission: { path: "/api/v1/permissions", perPage: 500, labels: ["name", "slug"] },
   role: { path: "/api/v1/roles", perPage: 200, labels: ["name", "role_name", "slug"] },
   partner: { path: "/api/v1/partners", perPage: 200, labels: ["name", "partner_name"] },
-  catalogGame: { path: "/api/v1/games", perPage: 100000, labels: ["name", "game_name", "master_game_name"] },
+  catalogGame: { path: "/api/v1/games", perPage: 200, labels: ["name", "game_name", "master_game_name"] },
 };
 
 type ReferenceStore = {
@@ -86,39 +90,42 @@ type ReferenceStore = {
   partner: ListState;
   gameScope: string | null;
   ensure: (kind: Kind) => Promise<void>;
-  refresh: (kind: Kind, searchText?: string) => Promise<void>;
+  refresh: (kind: Kind, searchText?: string, page?: number, append?: boolean, partnerId?: string) => Promise<void>;
   ensureGamesForOperator: (operatorId: string) => Promise<void>;
   refreshGamesForOperator: (operatorId: string, searchText?: string) => Promise<void>;
 };
 
 export const useReferenceStore = create<ReferenceStore>((set, get) => {
-  const load = async (kind: Kind, searchText?: string) => {
+  const load = async (kind: Kind, searchText?: string, page = 1, append = false, partnerId?: string) => {
     // Reference lists are bearer-protected: skip silently when signed out so
     // the login screen never shows "Missing bearer token" warnings.
     if (!tokenStore.access) return;
     const cfg = CONFIG[kind];
     const trimmed = searchText?.trim() ?? "";
-    const query = { page: 1, per_page: cfg.perPage } as Record<string, string | number>;
+    const query = { page, per_page: cfg.perPage } as Record<string, string | number>;
     if (trimmed) query.search = trimmed;
+    if (kind === "game" && partnerId) query.partner_id = partnerId;
 
     set((state) => ({ [kind]: { ...state[kind], loading: true, error: null } }) as Partial<ReferenceStore>);
     try {
       // Games have two sources: operator-scoped `/api/v1/operator-games` and
       // the global catalogue `/api/v1/games`. When loading the generic
       // reference list (no operator selected) use the global endpoint with
-      // a very large `per_page` so users can search across all games.
+      // a modest page size and allow incremental load-more.
       let payload;
       if (kind === "game") {
-        payload = await apiRequest("/api/v1/games", { query: { ...query, page: 1, per_page: 1000000 } });
+        payload = await apiRequest("/api/v1/games", { query: { ...query, page, per_page: 200 } });
       } else {
         payload = await apiRequest(cfg.path, { query });
       }
       const normalized = normalizeList(payload);
       const rows = normalized.rows;
       const total = metaNumber(normalized.meta, ["total", "total_items", "count", "total_records"]);
-      const options = toOptions(rows, kind === "game" ? CONFIG.catalogGame.labels : cfg.labels, kind);
+      const existing = append ? get()[kind].rows : [];
+      const mergedRows = append ? [...existing, ...rows] : rows;
+      const options = toOptions(mergedRows, kind === "game" ? CONFIG.catalogGame.labels : cfg.labels, kind);
       set(() => ({
-        [kind]: { options, rows, total, loading: false, error: null, loaded: true, promise: null },
+        [kind]: { options, rows: mergedRows, total, loading: false, error: null, loaded: true, promise: null },
         ...(kind === "game" ? { gameScope: null } : {}),
       }) as Partial<ReferenceStore>);
     } catch (error) {
@@ -155,13 +162,13 @@ export const useReferenceStore = create<ReferenceStore>((set, get) => {
   // Game dropdown reads operator-scoped `/api/v1/operator-games` when an
   // operator is selected; otherwise it loads the global catalogue from
   // `/api/v1/games` (see `load` above) with a large `per_page`.
-  const loadGamesForOperator = async (operatorId: string, searchText?: string) => {
-    if (!tokenStore.access) return;
+  const loadGamesForOperator = async (operatorId: string, searchText?: string, page = 1, append = false) => {
+    if (!tokenStore.access || !operatorId) return;
     const cfg = CONFIG.game;
     const trimmed = searchText?.trim() ?? "";
     const query: Record<string, string | number | undefined> = {
-      page: 1,
-      per_page: cfg.perPage,
+      page,
+      per_page: 200,
       operator_id: operatorId || undefined,
     };
     if (trimmed) query.search = trimmed;
@@ -180,13 +187,27 @@ export const useReferenceStore = create<ReferenceStore>((set, get) => {
         if (id !== undefined && id !== null && name) nameById.set(String(id), String(name));
       }
 
-      const options = rows
+      const existing = append ? get().game.rows : [];
+      const mergedRows = append ? [...existing, ...rows] : rows;
+      const deduped = mergedRows.filter((row, index, array) => {
+        const id = String(row.game_id ?? row.id ?? "");
+        const partnerKey = String(row.partner_id ?? row.partner_name ?? "");
+        return (
+          id &&
+          array.findIndex((item) => {
+            const itemId = String(item.game_id ?? item.id ?? "");
+            const itemPartnerKey = String(item.partner_id ?? item.partner_name ?? "");
+            return itemId === id && itemPartnerKey === partnerKey;
+          }) === index
+        );
+      });
+      const options = deduped
         .map((row) => gameLabel(row, nameById))
         .filter((o): o is Option => o !== null)
         .sort((a, b) => a.label.localeCompare(b.label));
 
       set(() => ({
-        game: { options, rows, total, loading: false, error: null, loaded: true, promise: null },
+        game: { options, rows: deduped, total, loading: false, error: null, loaded: true, promise: null },
         gameScope: operatorId || null,
       }) as Partial<ReferenceStore>);
     } catch (error) {
@@ -217,9 +238,10 @@ export const useReferenceStore = create<ReferenceStore>((set, get) => {
     ensure: (kind) => {
       const current = get()[kind];
       if (kind === "game") {
-        if (get().gameScope !== null) {
+        const scopedOperator = get().gameScope;
+        if (scopedOperator) {
           // If a scoped list is active, load the operator-specific list.
-          return loadGamesForOperator("");
+          return loadGamesForOperator(scopedOperator);
         }
         if (current.loaded || current.loading) return current.promise ?? Promise.resolve();
         const promise = load("game");
@@ -231,14 +253,16 @@ export const useReferenceStore = create<ReferenceStore>((set, get) => {
       set((state) => ({ [kind]: { ...state[kind], promise } }) as Partial<ReferenceStore>);
       return promise;
     },
-    refresh: (kind, searchText) => (kind === "game" ? load("game", searchText) : load(kind, searchText)),
+    refresh: (kind, searchText, page = 1, append = false, partnerId?: string) =>
+      kind === "game" ? load("game", searchText, page, append, partnerId) : load(kind, searchText, page, append),
     ensureGamesForOperator: async (operatorId: string) => {
       if (!operatorId) return;
       const state = get();
       if (state.gameScope === operatorId && state.game.loaded) return;
       await loadGamesForOperator(operatorId);
     },
-    refreshGamesForOperator: (operatorId: string, searchText?: string) => loadGamesForOperator(operatorId, searchText),
+    refreshGamesForOperator: (operatorId: string, searchText?: string, page = 1, append = false) =>
+      loadGamesForOperator(operatorId, searchText, page, append),
   };
 });
 

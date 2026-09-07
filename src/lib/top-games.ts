@@ -9,14 +9,16 @@
  */
 
 import { parseIdGroups, parseIdList } from "@/lib/env-list";
+import { pickEnvPairRaw } from "@/lib/env";
 
 export const TOP_GAMES_VALUE = "__top_games__";
 export const TOP_GAMES_LABEL = "Top games";
 
 const env = import.meta.env as Record<string, string | undefined>;
+const topGameIdsEnv = pickEnvPairRaw("VITE_TOP_GAME_IDS") ?? env.VITE_TOP_GAME_IDS;
 
-export const TOP_GAME_GROUPS = parseIdGroups(env.VITE_TOP_GAME_IDS);
-export const TOP_GAME_IDS = parseIdList(env.VITE_TOP_GAME_IDS);
+export const TOP_GAME_GROUPS = parseIdGroups(topGameIdsEnv);
+export const TOP_GAME_IDS = parseIdList(topGameIdsEnv);
 export const TOP_GAME_NAMES = parseIdList(env.VITE_TOP_GAME_NAMES);
 
 /** Selectable option values for each configured group (`__top_games__:0`, …). */

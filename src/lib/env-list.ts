@@ -18,6 +18,21 @@ function coerceEntry(value: unknown): string | null {
 
 /** Parse an env value into groups of ids. A flat list becomes a single group. */
 export function parseIdGroups(value: unknown): string[][] {
+  const normalizeGroup = (group: unknown): string[] =>
+    Array.isArray(group)
+      ? group.map((entry) => coerceEntry(entry)).filter((id): id is string => Boolean(id))
+      : [coerceEntry(group)].filter((id): id is string => Boolean(id));
+
+  if (Array.isArray(value)) {
+    if (value.every((entry) => Array.isArray(entry))) {
+      return value
+        .map((group) => normalizeGroup(group))
+        .filter((group) => group.length > 0);
+    }
+    const flat = normalizeGroup(value);
+    return flat.length > 0 ? [flat] : [];
+  }
+
   if (typeof value !== "string") return [];
   const raw = value.trim();
   if (!raw) return [];
@@ -28,21 +43,24 @@ export function parseIdGroups(value: unknown): string[][] {
       if (Array.isArray(parsed)) {
         if (parsed.every((entry) => Array.isArray(entry))) {
           return (parsed as unknown[][])
-            .map((group) => group.map(coerceEntry).filter((id): id is string => Boolean(id)))
+            .map((group) => normalizeGroup(group))
             .filter((group) => group.length > 0);
         }
-        const flat = parsed.map(coerceEntry).filter((id): id is string => Boolean(id));
+        const flat = normalizeGroup(parsed);
         return flat.length > 0 ? [flat] : [];
       }
     } catch {
-      /* fall through to comma parsing */
+      /* fall through to numeric parsing */
     }
   }
+
+  const matches = raw.match(/\d+/g) ?? [];
+  if (matches.length > 0) return [matches];
 
   const flat = raw
     .replace(/^\[|\]$/g, "")
     .split(",")
-    .map((entry) => entry.trim().replace(/^["']|["']$/g, ""))
+    .map((entry) => entry.trim().replace(/^['"]|['"]$/g, ""))
     .filter(Boolean);
   return flat.length > 0 ? [flat] : [];
 }

@@ -52,7 +52,7 @@ export function ResourceView({ resource }: { resource: ResourceDef }) {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(25);
   
-  const [pending, setPending] = useState<{ action: ActionDef; row?: Dict } | null>(null);
+  const [pending, setPending] = useState<{ action: ActionDef; row?: Dict; initialValues?: Dict } | null>(null);
   const [issued, setIssued] = useState<IssuedCredentials | null>(null);
   const [confirming, setConfirming] = useState<{ action: ActionDef; row?: Dict } | null>(null);
 
@@ -138,6 +138,8 @@ export function ResourceView({ resource }: { resource: ResourceDef }) {
     setValues((prev) => (prev.operator_id === scope.operatorId ? prev : { ...prev, operator_id: scope.operatorId }));
     setApplied((prev) => (prev.operator_id === scope.operatorId ? prev : { ...prev, operator_id: scope.operatorId }));
   }, [lockOperator, scope.operatorId]);
+
+  const selectedOperatorId = String(applied.operator_id ?? scope.operatorId ?? "").trim();
 
   const missingRequired = filters
     .filter((filter) => filter.required)
@@ -260,15 +262,30 @@ export function ResourceView({ resource }: { resource: ResourceDef }) {
 
       {collectionActions.length > 0 ? (
         <div className="flex flex-wrap justify-end gap-2">
-          {collectionActions.map((action) => (
-            <button
-              key={action.key}
-              onClick={() => setPending({ action, row: undefined })}
-              className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-opacity hover:opacity-90"
-            >
-              {action.label}
-            </button>
-          ))}
+          {collectionActions
+            .filter((action) => {
+              if (resource.key !== "operator-games") return true;
+              if (action.key !== "operator-game-create") return true;
+              return Boolean(selectedOperatorId);
+            })
+            .map((action) => (
+              <button
+                key={action.key}
+                onClick={() =>
+                  setPending({
+                    action,
+                    row: undefined,
+                    initialValues:
+                      action.key === "operator-game-create" && selectedOperatorId
+                        ? { operator_id: selectedOperatorId }
+                        : undefined,
+                  })
+                }
+                className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-opacity hover:opacity-90"
+              >
+                {action.label}
+              </button>
+            ))}
         </div>
       ) : null}
 
@@ -486,9 +503,10 @@ export function ResourceView({ resource }: { resource: ResourceDef }) {
 
       {pending ? (
         <ActionDialog
-          key={`${pending.action.key}-${String(pending.row?.[pending.action.idKey ?? "id"] ?? "new")}`}
+          key={`${pending.action.key}-${String(pending.row?.[pending.action.idKey ?? "id"] ?? "new")}-${selectedOperatorId || "no-operator"}`}
           action={pending.action}
           row={pending.row}
+          initialValues={pending.initialValues}
           open
           onOpenChange={(open) => !open && setPending(null)}
           onSuccess={(data) => {

@@ -3,6 +3,7 @@ import { Search, ChevronDown } from "lucide-react";
 import { useReferenceStore, type Kind } from "@/lib/stores/reference-store";
 import { clientScope, useAuth } from "@/lib/use-auth";
 import { cn } from "@/lib/utils";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 
 export type Option = { value: string; label: string };
 
@@ -112,6 +113,7 @@ export function ReferenceSelect({
   values,
   onChangeMulti,
   partnerFilter,
+  partnerFilterValue,
 
 }: {
   kind: Kind;
@@ -131,6 +133,7 @@ export function ReferenceSelect({
   onChangeMulti?: (value: string[]) => void;
   /** Show a "Filter by partner" picker above the list (game lists only). */
   partnerFilter?: boolean;
+  partnerFilterValue?: string;
 }) {
 
 
@@ -152,40 +155,66 @@ export function ReferenceSelect({
   const ensureGamesForOperator = useReferenceStore((s) => s.ensureGamesForOperator);
   const ensureGlobal = useReferenceStore((s) => s.ensure);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [partnerFilterId, setPartnerFilterId] = useState(partnerFilterValue ?? "");
   const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!open) setSearch("");
+    if (!open) {
+      setSearch("");
+      setPage(1);
+    }
   }, [open]);
 
   // Single-client admins are resolved from the session, so the games list must
   // be fetched without operator_id. Admins and multi-client accounts send it.
   const operatorScoped = scope.mode !== "single";
 
+  useEffect(() => {
+    if (!partnerFilter || !partnerFilterValue) {
+      if (partnerFilter && !partnerFilterValue) setPartnerFilterId("");
+      return;
+    }
+    setPartnerFilterId(partnerFilterValue);
+  }, [partnerFilter, partnerFilterValue]);
+
   // When the field is required, eagerly load its reference list on mount so
   // forms that depend on operator/operator-games have the data available.
   useEffect(() => {
     if (!required || disabled) return;
     if (kind === "game") {
+      if (partnerFilter && !partnerFilterId) return;
+      if (partnerFilter && partnerFilterId) {
+        void useReferenceStore.getState().refresh("game", search, 1, false, partnerFilterId);
+        return;
+      }
       if (operatorId && operatorScoped) {
         void ensureGamesForOperator(operatorId);
-      } else {
+      } else if (!partnerFilter) {
         void ensureGlobal("game");
       }
       return;
     }
     void ensureGlobal(kind);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [required, disabled, kind, operatorId, operatorScoped, ensureGamesForOperator, ensureGlobal]);
+  }, [required, disabled, kind, operatorId, operatorScoped, ensureGamesForOperator, ensureGlobal, partnerFilter, partnerFilterId, search]);
 
   useEffect(() => {
     if (kind !== "game" || disabled) return;
+    if (partnerFilter) {
+      if (!partnerFilterId) return;
+      void useReferenceStore.getState().refresh("game", search, 1, false, partnerFilterId);
+      return;
+    }
     if (operatorId && operatorScoped) {
       void ensureGamesForOperator(operatorId);
-    } else {
-      void ensureGlobal("game");
+      return;
     }
-  }, [kind, operatorId, disabled, operatorScoped, ensureGamesForOperator, ensureGlobal]);
+    if (!operatorId) {
+      return;
+    }
+    void ensureGlobal("game");
+  }, [kind, operatorId, disabled, operatorScoped, ensureGamesForOperator, ensureGlobal, partnerFilter, partnerFilterId, search]);
 
   // Reference lists (operators, partners, roles…) can go stale when records are
   // created elsewhere in the app, so re-fetch them each time the menu is opened.
@@ -194,17 +223,26 @@ export function ReferenceSelect({
   useEffect(() => {
     if (!open || disabled) return;
     const term = search.trim();
+    if (kind === "game") {
+      if (partnerFilter) {
+        if (!partnerFilterId) return;
+        void refresh("game", term, 1, false, partnerFilterId);
+        return;
+      }
+      if (operatorId && operatorScoped) {
+        void refreshGamesForOperator(operatorId, term);
+        return;
+      }
+      if (!operatorId) return;
+      void refresh("game", term);
+      return;
+    }
     // Prefer cached data: only refresh when the list isn't loaded yet or when
     // the user entered a search term.
     if (!query.loaded && !term) return;
-    if (kind === "game") {
-      if (operatorId && operatorScoped) void refreshGamesForOperator(operatorId, term);
-      else void refresh("game", term);
-      return;
-    }
     void refresh(kind, term);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, search, kind, operatorId, operatorScoped, disabled, refresh, refreshGamesForOperator, query.loaded]);
+  }, [open, search, kind, operatorId, operatorScoped, disabled, refresh, refreshGamesForOperator, query.loaded, partnerFilter, partnerFilterId]);
 
 
 
@@ -240,7 +278,6 @@ export function ReferenceSelect({
       : "Select permission";
 
   // Optional "filter by partner" picker: narrows the game rows to one partner.
-  const [partnerFilterId, setPartnerFilterId] = useState("");
   const partnerState = useReferenceStore((s) => s.partner);
   const ensurePartners = useReferenceStore((s) => s.ensure);
   useEffect(() => {
@@ -249,14 +286,38 @@ export function ReferenceSelect({
   }, [partnerFilter, disabled, ensurePartners]);
 
   const partnerScopedRows = useMemo(() => {
-    if (!partnerFilter || !partnerFilterId) return scopedRows;
-    return scopedRows.filter((row) => String(row.partner_id ?? "") === partnerFilterId);
-  }, [scopedRows, partnerFilter, partnerFilterId]);
+    const selectedPartner = partnerState.options.find((option) => option.value === partnerFilterId);
+    const selectedPartnerName = selectedPartner?.label?.trim().toLowerCase() ?? "";
 
-  const filtered = useMemo(
-    () => filterRows(partnerScopedRows, query.options, search, groupBy, kind),
-    [partnerScopedRows, query.options, search, groupBy, kind],
-  );
+    const rows = !partnerFilter || !partnerFilterId
+      ? scopedRows
+      : scopedRows.filter((row) => {
+          const rowPartnerId = row.partner_id;
+          const rowPartnerName = typeof row.partner_name === "string" ? row.partner_name.trim().toLowerCase() : "";
+          const matchesId =
+            rowPartnerId !== undefined &&
+            rowPartnerId !== null &&
+            String(rowPartnerId) === String(partnerFilterId);
+          const matchesName =
+            selectedPartnerName !== "" && rowPartnerName && rowPartnerName === selectedPartnerName;
+          return matchesId || matchesName;
+        });
+
+    return [...rows].sort((a, b) => {
+      const aLabel = rowLabel(a, query.options, kind).toLocaleLowerCase();
+      const bLabel = rowLabel(b, query.options, kind).toLocaleLowerCase();
+      return aLabel.localeCompare(bLabel);
+    });
+  }, [scopedRows, partnerFilter, partnerFilterId, query.options, kind, partnerState.options]);
+
+  const filtered = useMemo(() => {
+    const result = filterRows(partnerScopedRows, query.options, search, groupBy, kind);
+    if (!groupBy) return [...(result as Option[])].sort((a, b) => a.label.localeCompare(b.label));
+    return (result as Array<{ label: string; options: Option[] }>).map((group) => ({
+      ...group,
+      options: [...group.options].sort((a, b) => a.label.localeCompare(b.label)),
+    }));
+  }, [partnerScopedRows, query.options, search, groupBy, kind]);
 
   const options = useMemo(
     () => (!groupBy ? (filtered as Option[]) : ([] as Option[])),
@@ -276,8 +337,34 @@ export function ReferenceSelect({
           (o) => o.label.toLowerCase().includes(q) || extraGroup.label.toLowerCase().includes(q),
         )
       : extraGroup.options;
-    return options.length > 0 ? { label: extraGroup.label, options } : null;
+    return options.length > 0 ? { label: extraGroup.label, options: [...options].sort((a, b) => a.label.localeCompare(b.label)) } : null;
   }, [extraGroup, search]);
+
+  const visibleCount = groupBy
+    ? groups.reduce((count, group) => count + group.options.length, 0)
+    : options.length;
+
+  const hasMore = !query.loading &&
+    typeof query.total === "number"
+      ? query.total > 200 && query.rows.length < query.total && visibleCount >= 200
+      : query.rows.length > 200 && visibleCount >= 200;
+
+  const loadMore = async () => {
+    if (!hasMore || query.loading) return;
+    const nextPage = page + 1;
+    setPage(nextPage);
+    if (kind === "game") {
+      if (partnerFilter && partnerFilterId) {
+        await useReferenceStore.getState().refresh("game", search, nextPage, true, partnerFilterId);
+      } else if (operatorId && operatorScoped) {
+        await useReferenceStore.getState().refreshGamesForOperator(operatorId, search, nextPage, true);
+      } else {
+        await useReferenceStore.getState().refresh("game", search, nextPage, true);
+      }
+      return;
+    }
+    await useReferenceStore.getState().refresh(kind, search, nextPage, true);
+  };
 
   const multiValues = useMemo(() => (multiple ? (values ?? []) : []), [multiple, values]);
   const selectedSet = useMemo(() => new Set(multiValues), [multiValues]);
@@ -385,18 +472,15 @@ export function ReferenceSelect({
               <span className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
                 Partner
               </span>
-              <select
-                value={partnerFilterId}
-                onChange={(event) => setPartnerFilterId(event.target.value)}
-                className="h-8 flex-1 rounded-md border border-input bg-surface px-2 text-sm outline-none focus:border-primary/70"
-              >
-                <option value="">All partners</option>
-                {partnerState.options.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              <div className="flex-1">
+                <SearchableSelect
+                  value={partnerFilterId}
+                  options={[{ value: "", label: "All partners" }, ...partnerState.options]}
+                  placeholder="Select partner"
+                  onChange={setPartnerFilterId}
+                  buttonClassName="h-8"
+                />
+              </div>
             </div>
           ) : null}
           <div className="max-h-64 overflow-y-auto px-1 py-1">
@@ -431,6 +515,17 @@ export function ReferenceSelect({
               options.map((option) => renderOption(option))
 
             )}
+            {hasMore ? (
+              <div className="border-t border-muted/20 px-2 py-2">
+                <button
+                  type="button"
+                  onClick={() => void loadMore()}
+                  className="w-full rounded-md border border-input bg-surface px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-accent/50"
+                >
+                  See more
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -467,6 +562,11 @@ export function MultiReferenceSelect({
   useEffect(() => {
     if (!open) setSearch("");
   }, [open]);
+
+  useEffect(() => {
+    if (!open || kind !== "game" || !partnerFilter || !partnerFilterId) return;
+    void useReferenceStore.getState().refresh("game", search, 1, false, partnerFilterId);
+  }, [open, kind, partnerFilter, partnerFilterId, search]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

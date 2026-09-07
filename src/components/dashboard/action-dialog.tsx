@@ -204,14 +204,27 @@ export function ActionDialog({
   open,
   onOpenChange,
   onSuccess,
+  initialValues,
 }: {
   action: ActionDef;
   row?: Dict;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: (data?: unknown) => void;
+  initialValues?: Dict;
 }) {
-  const [values, setValues] = useState<Record<string, FormValue>>(() => initialState(action, row));
+  const [values, setValues] = useState<Record<string, FormValue>>(() => {
+    const base = initialState(action, row);
+    if (!initialValues) return base;
+    return {
+      ...base,
+      ...Object.fromEntries(
+        Object.entries(initialValues).flatMap(([key, value]) =>
+          value === undefined || value === null || value === "" ? [] : [[key, String(value)]],
+        ),
+      ),
+    };
+  });
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [wrapEntries, setWrapEntries] = useState<Record<string, FormValue>[]>(() => {
     if (!action.wrapAs) return [];
@@ -475,15 +488,28 @@ export function ActionDialog({
       all.filter((field) => {
         const isSelector =
           field.type === "operator" || field.type === "game" || field.type === "partner";
-        if (jackpot) return isSelector || JACKPOT_FIELDS.includes(field.name);
-        // total_games (and the other jackpot fields) only exist for jackpot games.
-        if (JACKPOT_FIELDS.includes(field.name)) return false;
-        // Denomination is always editable on the edit modal.
+
+        if (jackpot) {
+          return (
+            isSelector ||
+            ["minimum_stake", "maximum_stake", "maximum_win", "stake", "minimum_win", "total_games"].includes(field.name)
+          );
+        }
+
+        // Jackpot-only fields stay hidden unless the selected game is configured as a jackpot.
+        if (["stake", "minimum_win", "total_games"].includes(field.name)) return false;
+
+        // Standard operator games show all regular fields except the jackpot-only total_games field.
+        if (field.name === "total_games") return false;
+
+        // Denomination is only shown for games explicitly configured as denomination-enabled.
         if (field.name === "denomination") return isUpdate || denomination;
+
         // Branding fields are only available for house partner games on the edit modal.
         if (isUpdate && (field.name === "color_scheme" || field.name === "background_image")) {
           return partnerIdIsZero;
         }
+
         // Display name only applies when an individual game is selected on the add modal.
         if (!isUpdate && field.name === "game_name") return Boolean(individualGameId);
         return true;
@@ -1231,6 +1257,8 @@ function FieldInput({
         operatorId={
           field.type === "game" && !field.catalog ? String(values.operator_id ?? "") : undefined
         }
+        partnerFilter={field.type === "game" && !field.catalog}
+        partnerFilterValue={typeof values.partner_id === "string" ? values.partner_id : ""}
         value={typeof value === "string" ? value : ""}
         onChange={onChange}
       />

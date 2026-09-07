@@ -3,20 +3,21 @@
  *
  * - VITE_DENOMINATION_GAMES: games that expose the Denomination input.
  * - VITE_JACKPOT_GAMES: game ids treated as jackpots (`[1,2]` or `1,2`).
- * - VITE_JACKPOT_FIELDS: the only fields shown for jackpot games.
+ *
+ * Jackpot-only inputs are fixed to this list and only shown when the selected
+ * game matches a configured id in VITE_JACKPOT_GAMES.
  */
 
 import { parseIdList } from "@/lib/env-list";
+import { pickEnvPairRaw } from "@/lib/env";
 
 const env = import.meta.env as Record<string, string | undefined>;
+const denominationEnv = pickEnvPairRaw("VITE_DENOMINATION_GAMES") ?? env.VITE_DENOMINATION_GAMES;
+const jackpotEnv = pickEnvPairRaw("VITE_JACKPOT_GAMES") ?? env.VITE_JACKPOT_GAMES;
 
-export const DENOMINATION_GAMES = parseIdList(env.VITE_DENOMINATION_GAMES);
-export const JACKPOT_GAMES = parseIdList(env.VITE_JACKPOT_GAMES);
-const jackpotFields = parseIdList(env.VITE_JACKPOT_FIELDS);
-/** Defaults to the jackpot-only inputs when the env var is not configured. */
-export const JACKPOT_FIELDS = jackpotFields.length
-  ? jackpotFields
-  : ["stake", "total_games", "minimum_win", "maximum_win"];
+export const DENOMINATION_GAMES = parseIdList(denominationEnv);
+export const JACKPOT_GAMES = parseIdList(jackpotEnv);
+export const JACKPOT_FIELDS = ["stake", "total_games", "minimum_win", "maximum_win"];
 
 /** Identity of the game currently selected in a form / row. */
 export type GameIdentity = { id?: string | null; name?: string | null };
