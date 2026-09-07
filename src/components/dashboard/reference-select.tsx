@@ -236,8 +236,7 @@ export function ReferenceSelect({
     const term = search.trim();
     if (kind === "game") {
       if (partnerFilter) {
-        if (!partnerFilterId) return;
-        void refresh("game", term, 1, false, partnerFilterId);
+        void refresh("game", term, 1, false, partnerFilterId || undefined);
         return;
       }
       if (operatorId && operatorScoped) {
@@ -501,7 +500,16 @@ export function ReferenceSelect({
               </div>
             </div>
           ) : null}
-          <div className="max-h-64 overflow-y-auto px-1 py-1">
+          <div
+            className="max-h-64 overflow-y-auto px-1 py-1"
+            onScroll={(event) => {
+              // Infinite scroll: loading the next page near the bottom keeps
+              // every partner's games reachable without clicking Load more.
+              const el = event.currentTarget;
+              if (el.scrollTop + el.clientHeight >= el.scrollHeight - 32) void loadMore();
+            }}
+          >
+
 
             {extra ? (
               <div className="space-y-1 py-1">
