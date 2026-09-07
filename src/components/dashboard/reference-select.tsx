@@ -183,9 +183,14 @@ export function ReferenceSelect({
   useEffect(() => {
     if (!required || disabled) return;
     if (kind === "game") {
-      if (partnerFilter && !partnerFilterId) return;
-      if (partnerFilter && partnerFilterId) {
-        void useReferenceStore.getState().refresh("game", search, 1, false, partnerFilterId);
+      if (partnerFilter) {
+        void useReferenceStore.getState().refresh(
+          "game",
+          search,
+          1,
+          false,
+          partnerFilterId || undefined,
+        );
         return;
       }
       if (operatorId && operatorScoped) {
@@ -202,8 +207,14 @@ export function ReferenceSelect({
   useEffect(() => {
     if (kind !== "game" || disabled) return;
     if (partnerFilter) {
-      if (!partnerFilterId) return;
-      void useReferenceStore.getState().refresh("game", search, 1, false, partnerFilterId);
+      // No partner picked = the full catalogue; a picked partner narrows it server-side.
+      void useReferenceStore.getState().refresh(
+        "game",
+        search,
+        1,
+        false,
+        partnerFilterId || undefined,
+      );
       return;
     }
     if (operatorId && operatorScoped) {
@@ -225,8 +236,7 @@ export function ReferenceSelect({
     const term = search.trim();
     if (kind === "game") {
       if (partnerFilter) {
-        if (!partnerFilterId) return;
-        void refresh("game", term, 1, false, partnerFilterId);
+        void refresh("game", term, 1, false, partnerFilterId || undefined);
         return;
       }
       if (operatorId && operatorScoped) {
@@ -340,14 +350,21 @@ export function ReferenceSelect({
     return options.length > 0 ? { label: extraGroup.label, options: [...options].sort((a, b) => a.label.localeCompare(b.label)) } : null;
   }, [extraGroup, search]);
 
-  const visibleCount = groupBy
-    ? groups.reduce((count, group) => count + group.options.length, 0)
-    : options.length;
+  const pageSize = kind === "game" ? 300 : 200;
 
-  const hasMore = !query.loading &&
-    typeof query.total === "number"
-      ? query.total > 200 && query.rows.length < query.total && visibleCount >= 200
-      : query.rows.length > 200 && visibleCount >= 200;
+  // "Load more" whenever the server reports more records than we have cached.
+  // When the API omits a total, a full page of results implies another page exists.
+  const hasMore =
+    !query.loading && query.rows.length > 0
+      ? typeof query.total === "number"
+        ? query.rows.length < query.total
+        : query.rows.length % pageSize === 0
+      : false;
+
+  useEffect(() => {
+    // New search term or partner filter restarts pagination at page 1.
+    setPage(1);
+  }, [search, partnerFilterId]);
 
   const loadMore = async () => {
     if (!hasMore || query.loading) return;
@@ -483,7 +500,16 @@ export function ReferenceSelect({
               </div>
             </div>
           ) : null}
-          <div className="max-h-64 overflow-y-auto px-1 py-1">
+          <div
+            className="max-h-64 overflow-y-auto px-1 py-1"
+            onScroll={(event) => {
+              // Infinite scroll: loading the next page near the bottom keeps
+              // every partner's games reachable without clicking Load more.
+              const el = event.currentTarget;
+              if (el.scrollTop + el.clientHeight >= el.scrollHeight - 32) void loadMore();
+            }}
+          >
+
 
             {extra ? (
               <div className="space-y-1 py-1">
@@ -522,7 +548,9 @@ export function ReferenceSelect({
                   onClick={() => void loadMore()}
                   className="w-full rounded-md border border-input bg-surface px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-accent/50"
                 >
-                  See more
+                  {query.loading
+                    ? "Loading…"
+                    : `Load more${typeof query.total === "number" ? ` (${query.rows.length.toLocaleString("en-GB")} of ${query.total.toLocaleString("en-GB")})` : ""}`}
                 </button>
               </div>
             ) : null}
@@ -563,10 +591,6 @@ export function MultiReferenceSelect({
     if (!open) setSearch("");
   }, [open]);
 
-  useEffect(() => {
-    if (!open || kind !== "game" || !partnerFilter || !partnerFilterId) return;
-    void useReferenceStore.getState().refresh("game", search, 1, false, partnerFilterId);
-  }, [open, kind, partnerFilter, partnerFilterId, search]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

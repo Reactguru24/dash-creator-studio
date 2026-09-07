@@ -235,6 +235,7 @@ export function ActionDialog({
     return [first];
   });
   const [result, setResult] = useState<unknown>(null);
+  const [failures, setFailures] = useState<{ game_id: string; message: string }[]>([]);
   const pristineRef = useRef<Record<string, FormValue> | null>(null);
   const operatorGameOptions = useReferenceStore((state) => state.game.options);
   const catalogGameOptions = useReferenceStore((state) => state.catalogGame.options);
@@ -939,6 +940,7 @@ export function ActionDialog({
       onOpenChange={(next) => {
         mutation.reset();
         setResult(null);
+        setFailures([]);
         setSubmitAttempted(false);
         if (!next) pristineRef.current = null;
         onOpenChange(next);
@@ -967,6 +969,7 @@ export function ActionDialog({
             event.preventDefault();
             mutation.reset();
             setResult(null);
+            setFailures([]);
             setSubmitAttempted(true);
             mutation.mutate();
           }}
@@ -1004,10 +1007,6 @@ export function ActionDialog({
           ) : null}
 
           {renderFields.map((field) => {
-            const lockedByGroup =
-              action.key === "operator-game-create" &&
-              ((field.type === "partner" && Boolean(individualGameId)) ||
-                (field.type === "game" && Boolean(partnerGroupId)));
             return (
               <div key={field.name} className="flex flex-col gap-1.5">
                 <label htmlFor={`${action.key}-${field.name}`} className="label-eyebrow">
@@ -1028,30 +1027,9 @@ export function ActionDialog({
                     field={field}
                     value={values[field.name]}
                     values={values}
-                    disabled={lockedByGroup}
                     onChange={(value) => set(field.name, value)}
                   />
                 )}
-                {lockedByGroup ? (
-                  <p className="text-[11px] text-muted-foreground">
-                    Disabled —{" "}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (field.type === "partner") {
-                          set("game_id", "");
-                          set("game_name", "");
-                        } else {
-                          set("partner_id", "");
-                        }
-                      }}
-                      className="inline text-[11px] text-primary underline hover:text-primary/80"
-                    >
-                      clear the {field.type === "partner" ? "individual game" : "partner group"}
-                    </button>{" "}
-                    to switch.
-                  </p>
-                ) : null}
                 {field.help ? (
                   <p className="text-[11px] text-muted-foreground">{field.help}</p>
                 ) : null}
@@ -1132,6 +1110,15 @@ export function ActionDialog({
                   <ReadableValue value={result} />
                 </div>
               )}
+              {failures.length > 0 ? (
+                <ul className="mt-2 max-h-32 list-disc space-y-1 overflow-y-auto pl-5 text-xs text-destructive">
+                  {failures.map((failure) => (
+                    <li key={failure.game_id}>
+                      Game #{failure.game_id}: {failure.message}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
           ) : null}
 

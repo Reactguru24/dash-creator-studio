@@ -92,7 +92,7 @@ type ReferenceStore = {
   ensure: (kind: Kind) => Promise<void>;
   refresh: (kind: Kind, searchText?: string, page?: number, append?: boolean, partnerId?: string) => Promise<void>;
   ensureGamesForOperator: (operatorId: string) => Promise<void>;
-  refreshGamesForOperator: (operatorId: string, searchText?: string) => Promise<void>;
+  refreshGamesForOperator: (operatorId: string, searchText?: string, page?: number, append?: boolean) => Promise<void>;
 };
 
 export const useReferenceStore = create<ReferenceStore>((set, get) => {
@@ -114,7 +114,7 @@ export const useReferenceStore = create<ReferenceStore>((set, get) => {
       // a modest page size and allow incremental load-more.
       let payload;
       if (kind === "game") {
-        payload = await apiRequest("/api/v1/games", { query: { ...query, page, per_page: 200 } });
+        payload = await apiRequest("/api/v1/games", { query: { ...query, page, per_page: 300 } });
       } else {
         payload = await apiRequest(cfg.path, { query });
       }
@@ -168,7 +168,7 @@ export const useReferenceStore = create<ReferenceStore>((set, get) => {
     const trimmed = searchText?.trim() ?? "";
     const query: Record<string, string | number | undefined> = {
       page,
-      per_page: 200,
+      per_page: 300,
       operator_id: operatorId || undefined,
     };
     if (trimmed) query.search = trimmed;
