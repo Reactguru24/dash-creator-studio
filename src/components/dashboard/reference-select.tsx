@@ -183,9 +183,14 @@ export function ReferenceSelect({
   useEffect(() => {
     if (!required || disabled) return;
     if (kind === "game") {
-      if (partnerFilter && !partnerFilterId) return;
-      if (partnerFilter && partnerFilterId) {
-        void useReferenceStore.getState().refresh("game", search, 1, false, partnerFilterId);
+      if (partnerFilter) {
+        void useReferenceStore.getState().refresh(
+          "game",
+          search,
+          1,
+          false,
+          partnerFilterId || undefined,
+        );
         return;
       }
       if (operatorId && operatorScoped) {
@@ -202,8 +207,14 @@ export function ReferenceSelect({
   useEffect(() => {
     if (kind !== "game" || disabled) return;
     if (partnerFilter) {
-      if (!partnerFilterId) return;
-      void useReferenceStore.getState().refresh("game", search, 1, false, partnerFilterId);
+      // No partner picked = the full catalogue; a picked partner narrows it server-side.
+      void useReferenceStore.getState().refresh(
+        "game",
+        search,
+        1,
+        false,
+        partnerFilterId || undefined,
+      );
       return;
     }
     if (operatorId && operatorScoped) {
